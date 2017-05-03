@@ -65,7 +65,7 @@ for file_number in range(i_begin,i_end):
   e3_data=read_hdf(e3_filename)
   b2_data=read_hdf(b2_filename)
   b3_data=read_hdf(b3_filename)
-  s1_data = e2_data * b3_data - e3_data * b2_data
+  s1_data = e2_data.data * b3_data.data - e3_data.data * b2_data.data
   temp=numpy.sum(s1_data,axis=0)/nx
   h5_output.data[file_number,1:ny]=temp[1:ny]
   # file_number+=1
