@@ -29,9 +29,9 @@ def main():
 	dirs = plots.general_dict['save_dir'][0]
 	if not os.path.exists(dirs):
 		os.makedirs(dirs)
-	else:
-		shutil.rmtree(dirs)
-		os.makedirs(dirs)	
+	# else:
+	# 	shutil.rmtree(dirs)
+	# 	os.makedirs(dirs)	
 	dpi = plots.general_dict['dpi'][0]
 	fig_size = plots.general_dict['fig_size']
 	x,y = dpi * fig_size[0], dpi * fig_size[1]
