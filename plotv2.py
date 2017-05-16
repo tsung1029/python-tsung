@@ -1,5 +1,4 @@
 import matplotlib
-
 matplotlib.use('Agg')
 import multiprocessing, h5py, sys, glob, os, shutil, subprocess
 import numpy as np
@@ -8,7 +7,7 @@ from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.ticker as ticker
-
+from h5_utilities import *
 # global parameters
 
 
@@ -59,8 +58,12 @@ def perform_ops(ops_name, data):
 
 
 def get_bounds(self, file_name, num, file_num):
-    file = h5py.File(file_name + str(str(1000000 + num)[1:]) + '.h5', 'r')
-    data = self.get_data(file, file_num)
+    file_name = file_name + str(str(1000000 + num)[1:]) + '.h5'
+    try:
+        file = h5py.File(file_name, 'r')
+        data = self.get_data(file, file_num)
+    except:
+        data = read_hdf(file_name).data
     if ('operation' in self.general_dict.keys()):
         data = perform_ops(self.general_dict['operation'][0], data)
     minimum, maximum = np.min(data), np.max(data)
@@ -524,7 +527,10 @@ class Subplot(Plot):
             return None
 
     def plot_lineout(self, file, file_num, ax, fig):
-        data = self.get_data(file, file_num)
+        try:
+            data = self.get_data(file, file_num)
+        except:
+            data = read_hdf(file.filename).data
         if ('operation' in self.general_dict.keys()):
             data = perform_ops(self.general_dict['operation'][0], data)
         axes = self.get_axes(file_num)
@@ -577,10 +583,12 @@ class Subplot(Plot):
             self.plot_lineout(file, file_num, ax, fig)
 
     def plot_grid(self, file, file_num, ax, fig):
-        data = self.get_data(file, file_num)
+        try:
+            data = self.get_data(file, file_num)
+        except:
+            data = read_hdf(file.filename).data
         if ('operation' in self.general_dict.keys()):
             data = perform_ops(self.general_dict['operation'][0], data)
-        data = np.abs(data)
         axes = self.get_axes(file_num)
         axis1 = self.construct_axis(file, axes[0], file_num)
         axis2 = self.construct_axis(file, axes[1], file_num)
@@ -664,7 +672,10 @@ class Subplot(Plot):
     def get_units(self, file, keyword=None):
         ## assuming osiris notation
         if (keyword == None):
-            data = file[file.attrs['NAME'][0]]
+            try:
+                data = file[file.attrs['NAME'][0]]
+            except:
+                return '[a.u.]'
         else:
             data = file[keyword]
         UNITS = data.attrs['UNITS'][0]
@@ -673,7 +684,10 @@ class Subplot(Plot):
     def get_name(self, file, keyword=None):
         ## assuming osiris notation
         if (keyword == None):
-            data = file[file.attrs['NAME'][0]]
+            try:
+                data = file[file.attrs['NAME'][0]]
+            except:
+                return r'${}$'.format(file.attrs['NAME'][0])
         else:
             data = file[keyword]
         NAME = data.attrs['LONG_NAME'][0]
@@ -741,10 +755,20 @@ class Subplot(Plot):
             else:
                 return self.raw_edges[file_num][1]
         else:
-            ind, ax = self.select_var(label)
-            axis = file['AXIS'][ax][:]
-            NX1 = file.attrs['NX'][ind]
-            return (axis[1] - axis[0]) * np.arange(NX1) / float(NX1) + axis[0]
+            try:
+                ind, ax = self.select_var(label)
+                axis = file['AXIS'][ax][:]
+                NX1 = file.attrs['NX'][ind]
+                return (axis[1] - axis[0]) * np.arange(NX1) / float(NX1) + axis[0]
+            except:
+                h5_data = read_hdf(file.filename)
+                ind = size(h5_data.axes)
+                for ii in range(size(h5_data.axes)):
+                    if label == h5_data.axes[ii].attributes['NAME']:
+                        ind = ii
+                axis = [h5_data.axes[ii].axis_max, h5_data.axes[ii].axis_min]
+                NX1 = h5_data.shape[ii]
+                return (axis[1] - axis[0]) * np.arange(NX1) / float(NX1) + axis[0]
 
     def axis_bounds(self, file, label):
         ## assuming osiris notation
@@ -757,7 +781,10 @@ class Subplot(Plot):
         ## assuming osiris notation
         if (keyword == None):
             ind, ax = self.select_var(label)
-            data = file['AXIS'][ax]
+            try:
+                data = file['AXIS'][ax]
+            except:
+                return label
         else:
             if (keyword == 'r'):
                 return self.axis_label(file, 'x2', 'x2')
