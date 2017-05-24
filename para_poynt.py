@@ -84,7 +84,7 @@ total = 0
 total2 = 0
 if rank == 0:
     total = numpy.zeros((total_time, ny))
-    total = numpy.zeros((total_time, nx))
+    total2 = numpy.zeros((total_time, nx))
 h5_output.axes = [data_basic_axis(0, h5_data.axes[0].axis_min, h5_data.axes[0].axis_max, ny),
                   data_basic_axis(1, 0.0, (time_step * total_time - 1), total_time)]
 h5_output.run_attributes['TIME'] = 0.0
@@ -94,12 +94,12 @@ h5_output.axes[0].attributes['UNITS'] = h5_data.axes[0].attributes['UNITS']
 h5_output.axes[1].attributes['LONG_NAME'] = 'TIME'
 h5_output.axes[1].attributes['UNITS'] = '1/\omega_p'
 
-h5_output2.axes = [data_basic_axis(0, h5_data.axes[0].axis_min, h5_data.axes[0].axis_max, ny),
+h5_output2.axes = [data_basic_axis(0, h5_data.axes[1].axis_min, h5_data.axes[1].axis_max, nx),
                    data_basic_axis(1, 0.0, (time_step * total_time - 1), total_time)]
 h5_output2.run_attributes['TIME'] = 0.0
 h5_output2.run_attributes['UNITS'] = 'm_e /T'
-h5_output2.axes[0].attributes['LONG_NAME'] = h5_data.axes[0].attributes['LONG_NAME']
-h5_output2.axes[0].attributes['UNITS'] = h5_data.axes[0].attributes['UNITS']
+h5_output2.axes[0].attributes['LONG_NAME'] = h5_data.axes[1].attributes['LONG_NAME']
+h5_output2.axes[0].attributes['UNITS'] = h5_data.axes[1].attributes['UNITS']
 h5_output2.axes[1].attributes['LONG_NAME'] = 'TIME'
 h5_output2.axes[1].attributes['UNITS'] = '1/\omega_p'
 
@@ -117,11 +117,11 @@ for file_number in range(i_begin, i_end):
     s1_data = e2_data.data * b3_data.data - e3_data.data * b2_data.data
     temp = numpy.sum(s1_data, axis=0) / nx
     h5_output.data[file_number, 1:ny] = temp[1:ny]
-    temp = numpy.sum(s1_data[1:n_avg+1], axis=0) / n_avg
+    temp = numpy.sum(s1_data[1:n_avg+1, :], axis=0) / n_avg
     income[file_number, 1:ny] = temp[1:ny]
     temp = numpy.sum(s1_data, axis=1) / ny
     h5_output2.data[file_number, 1:nx] = temp[1:nx]
-    temp = numpy.sum(s1_data[1:n_avg+1], axis=1) / n_avg
+    temp = numpy.sum(s1_data[:, 1:n_avg+1], axis=1) / n_avg
     income2[file_number, 1:nx] = temp[1:nx]
     # file_number+=1
 
@@ -135,7 +135,7 @@ if rank == 0:
     h5_output.data = total
     newName = outFilename.rsplit('.', 1)[0] + '-x-n' + str(n_avg) + '.h5'
     write_hdf(h5_output, newName)
-
+comm.barrier()
 comm.Reduce(h5_output2.data, total2, op=MPI.SUM, root=0)
 if rank == 0:
     h5_output2.data = total2
