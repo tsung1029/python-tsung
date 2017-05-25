@@ -85,24 +85,18 @@ total2 = 0
 if rank == 0:
     total = numpy.zeros((total_time, ny))
     total2 = numpy.zeros((total_time, nx))
-h5_output.axes = [data_basic_axis(0, h5_data.axes[0].axis_min, h5_data.axes[0].axis_max, ny),
-                  data_basic_axis(1, 0.0, (time_step * total_time - 1), total_time)]
+h5_output.axes = [data_basic_axis(1, 0.0, time_step * (total_time - 1), total_time),
+                  data_basic_axis(0, h5_data.axes[0].axis_min, h5_data.axes[0].axis_max, ny)]
 h5_output.run_attributes['TIME'] = 0.0
 h5_output.run_attributes['UNITS'] = 'm_e /T'
-h5_output.axes[0].attributes['LONG_NAME'] = h5_data.axes[0].attributes['LONG_NAME']
-h5_output.axes[0].attributes['UNITS'] = h5_data.axes[0].attributes['UNITS']
-h5_output.axes[1].attributes['LONG_NAME'] = 'TIME'
-h5_output.axes[1].attributes['UNITS'] = '1/\omega_p'
+h5_output.axes[1].attributes['LONG_NAME'] = h5_data.axes[0].attributes['LONG_NAME']
+h5_output.axes[1].attributes['UNITS'] = h5_data.axes[0].attributes['UNITS']
+h5_output.axes[0].attributes['LONG_NAME'] = 'TIME'
+h5_output.axes[0].attributes['UNITS'] = '1/\omega_p'
 
-h5_output2.axes = [data_basic_axis(0, h5_data.axes[1].axis_min, h5_data.axes[1].axis_max, nx),
-                   data_basic_axis(1, 0.0, (time_step * total_time - 1), total_time)]
-h5_output2.run_attributes['TIME'] = 0.0
-h5_output2.run_attributes['UNITS'] = 'm_e /T'
-h5_output2.axes[0].attributes['LONG_NAME'] = h5_data.axes[1].attributes['LONG_NAME']
-h5_output2.axes[0].attributes['UNITS'] = h5_data.axes[1].attributes['UNITS']
-h5_output2.axes[1].attributes['LONG_NAME'] = 'TIME'
-h5_output2.axes[1].attributes['UNITS'] = '1/\omega_p'
-
+h5_output2 = h5_output.clone()
+h5_output2.axes = [data_basic_axis(1, 0.0, time_step * (total_time - 1), total_time),
+                   data_basic_axis(0, h5_data.axes[1].axis_min, h5_data.axes[1].axis_max, nx)]
 file_number = 0
 for file_number in range(i_begin, i_end):
     e2_filename = e2[file_number]
