@@ -24,12 +24,16 @@ def analysis(data, ops_list, axes=None):
     for op in ops_list:
         if op == 'abs':
             data = np.abs(data)
+        elif op == 'log':
+            data = np.log(np.abs(data) + 1e-11)
+        elif op == 'log10':
+            data = np.log10(np.abs(data) + 1e-11)
         elif op == 'square':
             data = np.square(data)
         elif op == 'sqrt':
             data = np.sqrt(data)
         elif op == 'hilbert_env':
-            data = np.abs(hilbert(data))
+            data = np.abs(hilbert(data, **op.keywords))
         elif op == 'fft':
             ax = op.keywords.get('axes', None)
             data = np.fft.fftshift(np.fft.fftn(np.fft.ifftshift(data, axes=ax), **op.keywords), axes=ax)
@@ -45,6 +49,6 @@ def analysis(data, ops_list, axes=None):
 if __name__ == '__main__':
     kw = str2keywords.str2keywords('square')
     a = np.mgrid[:3, :3][0]
-    # use ** to unpack the dictionary
+    # pass in list of keywords
     a = analysis(a, [kw])
     print a

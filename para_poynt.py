@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import sys
 import getopt
 import glob
-import numpy
+import numpy as np
 from mpi4py import MPI
 
 
@@ -73,30 +73,36 @@ print 'nx=' + repr(nx)
 print 'ny=' + repr(ny)
 print 'time_step=' + repr(time_step)
 print 'total_time=' + repr(total_time)
-h5_output.data = numpy.zeros((total_time, ny))
-income = numpy.zeros((total_time, ny))
+h5_output.data = np.zeros((total_time, ny))
+income = np.zeros((total_time, ny))
 
-h5_output2 = hdf_data()
-h5_output2.shape = [total_time, nx]
-h5_output2.data = numpy.zeros((total_time, nx))
-income2 = numpy.zeros((total_time, nx))
 total = 0
 total2 = 0
 if rank == 0:
-    total = numpy.zeros((total_time, ny))
-    total2 = numpy.zeros((total_time, nx))
-h5_output.axes = [data_basic_axis(1, 0.0, time_step * (total_time - 1), total_time),
-                  data_basic_axis(0, h5_data.axes[0].axis_min, h5_data.axes[0].axis_max, ny)]
+    total = np.zeros((total_time, ny))
+    total2 = np.zeros((total_time, nx))
+h5_output.axes = [data_basic_axis(0, h5_data.axes[0].axis_min, h5_data.axes[0].axis_max, ny),
+                  data_basic_axis(1, 0.0, time_step * (total_time - 1), total_time)]
 h5_output.run_attributes['TIME'] = 0.0
 h5_output.run_attributes['UNITS'] = 'm_e /T'
-h5_output.axes[1].attributes['LONG_NAME'] = h5_data.axes[0].attributes['LONG_NAME']
-h5_output.axes[1].attributes['UNITS'] = h5_data.axes[0].attributes['UNITS']
-h5_output.axes[0].attributes['LONG_NAME'] = 'TIME'
-h5_output.axes[0].attributes['UNITS'] = '1/\omega_p'
+h5_output.axes[0].attributes['LONG_NAME'] = h5_data.axes[0].attributes['LONG_NAME']
+h5_output.axes[0].attributes['UNITS'] = h5_data.axes[0].attributes['UNITS']
+h5_output.axes[1].attributes['LONG_NAME'] = 'TIME'
+h5_output.axes[1].attributes['UNITS'] = '1/\omega_p'
 
-h5_output2 = h5_output.clone()
-h5_output2.axes = [data_basic_axis(1, 0.0, time_step * (total_time - 1), total_time),
-                   data_basic_axis(0, h5_data.axes[1].axis_min, h5_data.axes[1].axis_max, nx)]
+h5_output2 = hdf_data()
+h5_output2.shape = [total_time, nx]
+h5_output2.data = np.zeros((total_time, nx))
+income2 = np.zeros((total_time, nx))
+h5_output2.run_attributes['TIME'] = 0.0
+h5_output2.run_attributes['UNITS'] = 'm_e /T'
+h5_output2.axes = [data_basic_axis(0, h5_data.axes[1].axis_min, h5_data.axes[1].axis_max, nx),
+                   data_basic_axis(1, 0.0, time_step * (total_time - 1), total_time)]
+h5_output2.axes[0].attributes['LONG_NAME'] = h5_data.axes[1].attributes['LONG_NAME']
+h5_output2.axes[0].attributes['UNITS'] = h5_data.axes[1].attributes['UNITS']
+h5_output2.axes[1].attributes['LONG_NAME'] = 'TIME'
+h5_output2.axes[1].attributes['UNITS'] = '1/\omega_p'
+
 file_number = 0
 for file_number in range(i_begin, i_end):
     e2_filename = e2[file_number]
@@ -109,13 +115,13 @@ for file_number in range(i_begin, i_end):
     b2_data = read_hdf(b2_filename)
     b3_data = read_hdf(b3_filename)
     s1_data = e2_data.data * b3_data.data - e3_data.data * b2_data.data
-    temp = numpy.sum(s1_data, axis=0) / nx
+    temp = np.sum(s1_data, axis=0) / nx
     h5_output.data[file_number, 1:ny] = temp[1:ny]
-    temp = numpy.sum(s1_data[1:n_avg+1, :], axis=0) / n_avg
+    temp = np.sum(s1_data[0:n_avg, :], axis=0) / n_avg
     income[file_number, 1:ny] = temp[1:ny]
-    temp = numpy.sum(s1_data, axis=1) / ny
+    temp = np.sum(s1_data, axis=1) / ny
     h5_output2.data[file_number, 1:nx] = temp[1:nx]
-    temp = numpy.sum(s1_data[:, 1:n_avg+1], axis=1) / n_avg
+    temp = np.sum(s1_data[:, 0:n_avg], axis=1) / n_avg
     income2[file_number, 1:nx] = temp[1:nx]
     # file_number+=1
 

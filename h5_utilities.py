@@ -15,18 +15,19 @@ def plotme(hdf_data, data = None):
         data_to_use = data
     
     if len(data_to_use.shape) == 1:
+        figure()
         plot_object =  plot(hdf_data.axes[0].get_axis_points(), data_to_use)
-        xlabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'] )[0]))
-        ylabel("%s \n %s"% ( hdf_data.data_attributes['LONG_NAME'][0], math_string(hdf_data.data_attributes['UNITS'][0])) )
+        xlabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'])[0]))
+        ylabel("%s \n %s"% ( hdf_data.data_attributes['LONG_NAME'][0], math_string(hdf_data.data_attributes['UNITS'][0])))
         return plot_object
     
     if len(data_to_use.shape) == 2:
-        extent_stuff = [    hdf_data.axes[0].axis_min, hdf_data.axes[0].axis_max, hdf_data.axes[1].axis_min, hdf_data.axes[1].axis_max]
+        extent_stuff = [hdf_data.axes[0].axis_min, hdf_data.axes[0].axis_max, hdf_data.axes[1].axis_min, hdf_data.axes[1].axis_max]
         plot_object = imshow(data_to_use, extent=extent_stuff, aspect='auto', cmap='Rainbow')
         cb=colorbar(plot_object)
-        cb.set_label("%s \n %s"% ( hdf_data.data_attributes['LONG_NAME'], hdf_data.data_attributes['UNITS']) )
-        xlabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'])[0] ))
-        ylabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'][0] )))
+        cb.set_label("%s \n %s" % (hdf_data.data_attributes['LONG_NAME'], hdf_data.data_attributes['UNITS']) )
+        xlabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'])[0]))
+        ylabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'][0])))
         #ylabel("%s \n %s"% ( hdf_data.data_attributes['LONG_NAME'], hdf_data.data_attributes['UNITS']) )
 
     
