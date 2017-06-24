@@ -1,9 +1,8 @@
 import matplotlib
+import numpy as np
 import matplotlib.cm
 import matplotlib.colors
 import h5py
-import numpy as np
-from numpy import *
 from pylab import *
 
 import os
@@ -52,10 +51,10 @@ class hdf_data:
     
     def clone(self):
         out = hdf_data()
-        out.filename = filename
+        out.filename = self.filename
         
         for axis in self.axes:
-            out_axis = axis.clone()
+            out.axes = axis.clone()
             
         for key,value in self.data_attributes.items():
             out.data_attributes [key] = value    
@@ -193,16 +192,17 @@ class hdf_data:
             if axis.axis_number==axis_index:
                 return True
         return False
-        
+
+
 class data_basic_axis:
     def __init__(self, axis_number, axis_min, axis_max, axis_numberpoints):
-        
         self.axis_number             = axis_number
         self.axis_min                 = axis_min
         self.axis_max                 = axis_max
         self.axis_numberpoints     = axis_numberpoints
         self.increment             = (self.axis_max-self.axis_min)/self.axis_numberpoints
         self.attributes             = {}
+
     def clone(self):
         out = data_basic_axis()
         out.axis_number = self.axis_number
@@ -210,8 +210,9 @@ class data_basic_axis:
         out.axis_max = self.axis_max
         out.axis_numberpoints = self.axis_numberpoints
         out.increment = self.increment
-        for key,value in self.attributes.items():
-            out.attributes [key] = value
+        for key, value in self.attributes.items():
+            out.attributes[key] = value
+        return out
         
     def get_axis_points(self):
         return np.arange(self.axis_min, self.axis_max, self.increment)
@@ -247,12 +248,12 @@ def read_hdf(filename):
     data_file1 = h5py.File(filename, 'r')
     
     the_data_hdf_object = scan_hdf5_file_for_main_data_array(data_file1)
-    dim = len(the_data_hdf_object.shape)
+    # dim = len(the_data_hdf_object.shape)
     
     data_bundle = hdf_data()
     data_bundle.filename = filename
-    data_bundle.dim = len(the_data_hdf_object.shape)
-    data_bundle.shape = list(the_data_hdf_object.shape)
+    data_bundle.dim = the_data_hdf_object.ndim
+    data_bundle.shape = the_data_hdf_object.shape
     
     # now read in attributes of the ROOT of the hdf5.. t
     #   there's lots of good info there.
@@ -276,7 +277,7 @@ def read_hdf(filename):
             axis_data = axis[:]
             axis_min = axis_data.item(0)
             axis_max = axis_data.item(1)
-            axis_numberpoints = the_data_hdf_object.shape[axis_number-1]
+            axis_numberpoints = the_data_hdf_object.shape[-axis_number]
             
             data_axis = data_basic_axis(axis_number, axis_min, axis_max, axis_numberpoints)
             data_bundle.axes.append(data_axis)
@@ -288,15 +289,17 @@ def read_hdf(filename):
         axis_number += 1
     
     #TODO: probabaly better way to do this..
-    if dim == 1:
-        data_bundle.data = the_data_hdf_object[:]
-    elif dim == 2:
-        data_bundle.data = the_data_hdf_object[:][:]
-    elif dim == 3:
-        data_bundle.data = the_data_hdf_object[:][:][:]
-    else:
-        raise ValueException("You attempted to read in an Osiris diagnostic which had data of dimension greater then 3.. cant do that yet.")
-    
+    # if dim == 1:
+    #     data_bundle.data = the_data_hdf_object[:]
+    # elif dim == 2:
+    #     data_bundle.data = the_data_hdf_object[:][:]
+    # elif dim == 3:
+    #     data_bundle.data = the_data_hdf_object[:][:][:]
+    # else:
+    #     raise ValueException("You attempted to read in an Osiris diagnostic which had data of dimension greater then 3.. cant do that yet.")
+    # the_data_hdf_object is a numpy ndarray
+    data_bundle.data = the_data_hdf_object[()]
+
     data_file1.close()
     return data_bundle
     
