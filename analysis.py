@@ -12,12 +12,14 @@ def update_fft_axes(axisdata, forward=True):
         axisdata.axis_min, axisdata.axis_max = freq[0] * 2 * np.pi, freq[-1] * 2 * np.pi
         axisdata.attributes['NAME'][0] = 'K(' + axisdata.attributes['NAME'][0] + ')'
         axisdata.attributes['LONG_NAME'][0] = 'K(' + axisdata.attributes['LONG_NAME'][0] + ')'
+        axisdata.attributes['UNITS'][0] = '1/(' + axisdata.attributes['UNITS'][0] + ')'
     else:
         ax = np.fft.ifftshift(np.fft.fftfreq(axisdata.axis_numberpoints, d=axisdata.increment))
         axisdata.increment = (ax[1] - ax[0]) * 2 * np.pi
         axisdata.axis_min, axisdata.axis_max = ax[0] * 2 * np.pi, ax[-1] * 2 * np.pi
         axisdata.attributes['NAME'][0] = axisdata.attributes['NAME'][0][2:-1]
         axisdata.attributes['LONG_NAME'][0] = axisdata.attributes['LONG_NAME'][0][2:-1]
+        axisdata.attributes['UNITS'][0] = axisdata.attributes['UNITS'][0][3:-1]
     return axisdata
 
 

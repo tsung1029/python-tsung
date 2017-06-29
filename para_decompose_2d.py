@@ -1,6 +1,6 @@
 from h5_utilities import *
 import arraymask
-import multiprocessing as mp
+# import multiprocessing as mp
 import sys
 import os
 import getopt
@@ -85,25 +85,26 @@ part = total_time / size
 
 # # READ ONE FILE, FIGURE OUT THE AXES INFORMATION AND SET COMMON PARAMETERS
 h5_filename = e1[i_begin]
-h5_template = read_hdf(h5_filename)
-nx = h5_template.shape
-kx, ky = (analysis.update_fft_axes(copy.copy(h5_template.axes[0]), forward=True),
-          analysis.update_fft_axes(copy.copy(h5_template.axes[1]), forward=True))
+h5_output = read_hdf(h5_filename)
+nx = h5_output.shape
+kx, ky = (analysis.update_fft_axes(copy.deepcopy(h5_output.axes[0]), forward=True),
+          analysis.update_fft_axes(copy.deepcopy(h5_output.axes[1]), forward=True))
 kxvec, kyvec = np.meshgrid(kx.get_axis_points(), ky.get_axis_points())
 kamp = np.sqrt(np.square(kxvec) + np.square(kyvec))
 # unit vector
 kxvec, kyvec = np.divide(kxvec, kamp), np.divide(kyvec, kamp)
 if not ifftdim:
     ift = None
-    h5_template.axes = [kx, ky]
+    h5_output.axes = [kx, ky]
 else:
     ifftdim = np.array(ifftdim)
     if 'x2' in ifftdim and 'x1' in ifftdim:
         ift = 'axes=[0,1]'
     elif 'x2' not in ifftdim:
-        h5_template.axes[1] = ky
+        h5_output.axes[1] = ky
         ift = 'axes=[0]'
     else:  # 'x1' not in ifftdim
+        h5_output.axes[0] = kx
         ift = 'axes=[1]'
 # block part of the spectrum
 brg = []
@@ -123,7 +124,6 @@ if blocky:
 
 # # FOR EACH TIME STAMP DO SOMETHING
 def foreach_decompose(file_num):
-    h5_output = copy.copy(h5_template)
     e_filename = e1[file_num]
     e1file = read_hdf(e_filename)
     e2file = read_hdf(e2[file_num])
@@ -173,16 +173,18 @@ def foreach_decompose(file_num):
 
 #TODO: using mpi4py and multiprocess simutaneously may fail on some clusters. fix needed
 if __name__ == '__main__':
-    # threaded version
-    if size == 1:
-        pool = mp.Pool()
-        print pool.map(foreach_decompose, range(i_begin, i_end))
-        pool.close()
-        pool.join()
-    else:
-        # serial/mpi version
-        for time_i in range(i_begin, i_end):
-            foreach_decompose(time_i)
+#    # threaded version
+#    if size == 1:
+#        pool = mp.Pool()
+#        print pool.map(foreach_decompose, range(i_begin, i_end))
+#        pool.close()
+#        pool.join()
+#    else:
+#        # serial/mpi version
+#        for time_i in range(i_begin, i_end):
+#            foreach_decompose(time_i)
+    for time_i in range(i_begin, i_end):
+        foreach_decompose(time_i)
 
 comm.Barrier()
 comm.Disconnect()
