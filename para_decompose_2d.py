@@ -1,4 +1,4 @@
-from h5_utilities import *
+from h5_utilities import read_hdf, write_hdf
 import arraymask
 # import multiprocessing as mp
 import sys
@@ -7,7 +7,6 @@ import getopt
 import glob
 import numpy as np
 import analysis
-import copy
 from mpi4py import MPI
 
 
@@ -87,8 +86,8 @@ part = total_time / size
 h5_filename = e1[i_begin]
 h5_output = read_hdf(h5_filename)
 nx = h5_output.shape
-kx, ky = (analysis.update_fft_axes(copy.deepcopy(h5_output.axes[0]), forward=True),
-          analysis.update_fft_axes(copy.deepcopy(h5_output.axes[1]), forward=True))
+kx, ky = (analysis.update_fft_axes(h5_output.axes[0].clone(), forward=True),
+          analysis.update_fft_axes(h5_output.axes[1].clone(), forward=True))
 kxvec, kyvec = np.meshgrid(kx.get_axis_points(), ky.get_axis_points())
 kamp = np.sqrt(np.square(kxvec) + np.square(kyvec))
 # unit vector
@@ -144,8 +143,6 @@ def foreach_decompose(file_num):
                                   analysis.analysis(h5_output.data, ['ifft ' + ift, 'abs']))
     else:
         h5_output.data, e1data = np.abs(e1data - h5_output.data), np.abs(h5_output.data)
-    # if blockx or blocky:
-    #     h5_output.data = arraymask.mask(h5_output.data, axes=[kx, ky], region=brg)
     if 't1' in ocomp:
         h5_output.run_attributes['NAME'][0], h5_output.data_attributes['LONG_NAME'] = 'Et1', 'E_{t1}'
         newname = outdir + 'Et1' + os.path.basename(e_filename)[2:]
@@ -157,8 +154,6 @@ def foreach_decompose(file_num):
                                   analysis.analysis(h5_output.data, ['ifft ' + ift, 'abs']))
     else:
         h5_output.data, e2data = np.abs(e2data - h5_output.data), np.abs(h5_output.data)
-    # if blockx or blocky:
-    #     h5_output.data = arraymask.mask(h5_output.data, axes=[kx, ky], region=brg)
     if 't2' in ocomp:
         h5_output.run_attributes['NAME'][0], h5_output.data_attributes['LONG_NAME'] = 'Et2', 'E_{t2}'
         newname = outdir + 'Et2' + os.path.basename(e_filename)[2:]
@@ -171,18 +166,17 @@ def foreach_decompose(file_num):
         write_hdf(h5_output, newname)
     return e_filename
 
-#TODO: using mpi4py and multiprocess simutaneously may fail on some clusters. fix needed
+# TODO: using mpi4py and multiprocess simutaneously may fail on some clusters. fix needed
 if __name__ == '__main__':
-#    # threaded version
-#    if size == 1:
-#        pool = mp.Pool()
-#        print pool.map(foreach_decompose, range(i_begin, i_end))
-#        pool.close()
-#        pool.join()
-#    else:
-#        # serial/mpi version
-#        for time_i in range(i_begin, i_end):
-#            foreach_decompose(time_i)
+    # # threaded version
+    # if size == 1:
+    #     pool = mp.Pool()
+    #     print pool.map(foreach_decompose, range(i_begin, i_end))
+    #     pool.close()
+    #     pool.join()
+    # else:  # serial/mpi version
+    #     for time_i in range(i_begin, i_end):
+    #         foreach_decompose(time_i)
     for time_i in range(i_begin, i_end):
         foreach_decompose(time_i)
 

@@ -1,7 +1,7 @@
 import numpy as np
 import str2keywords
-from h5_utilities import *
-from arraymask import *
+# from h5_utilities import read_hdf
+from arraymask import mask
 from scipy.signal import hilbert
 
 
