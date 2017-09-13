@@ -207,6 +207,14 @@ class data_basic_axis:
     def get_axis_points(self):
         return np.arange(self.axis_min, self.axis_max, self.increment)
 
+    def trim(self, n_pts_start, n_pts_end):
+        self.axis_numberpoints -= (n_pts_start + n_pts_end)
+        if self.axis_numberpoints < 0:
+            print('ERROR: empty axis!')
+        self.axis_min += n_pts_start * self.increment
+        self.axis_max -= n_pts_end * self.increment
+
+
 
 def read_hdf(filename):
     """
@@ -293,9 +301,6 @@ def scan_hdf5_file_for_main_data_array(h5file):
     return h5file[datasetName]
 
 
-if __name__ == "__main__":
-    h5_data = read_hdf('x3x2x1-s1-000090.h5')
-
 
 # print h5_data.data_attributes
 #    print dir(h5_data.axes[0])
@@ -350,7 +355,7 @@ def write_hdf(data, filename, dataset_name=None, write_data=True):
         raise Exception("You did not specify a filename!!!")
 
     # print current_NAME_attr
-    h5dataset = h5file.create_dataset(current_NAME_attr, data_object.shape, data=data_object.data)
+    h5dataset = h5file.create_dataset(current_NAME_attr, data_object.data.shape, data=data_object.data)
     # these are required.. so make defaults ones...
     h5dataset.attrs['UNITS'] = ''
     h5dataset.attrs['LONG_NAME'] = ''
@@ -473,7 +478,38 @@ def init_colormap():
     color_map.set_over(rgb[-1])
     cm.register_cmap(name='Rainbow', cmap=color_map)
 
+
 init_colormap()
+
+if __name__ == "__main__":
+    # test reading PHA data
+    h5_data = read_hdf('/u/home/h/hwen/scratch/postdev/x2x1p1-electrons-000000.h5')
+    print h5_data.shape, h5_data.data.shape
+    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
+    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
+    print h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max
+    # test writing PHA data
+    write_hdf(h5_data, '/u/home/h/hwen/scratch/test.h5')
+    del h5_data
+    h5_data = read_hdf('/u/home/h/hwen/scratch/test.h5')
+    print h5_data.shape, h5_data.data.shape
+    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
+    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
+    print h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max
+    # test read FLD data
+    del h5_data
+    h5_data = read_hdf('/u/home/h/hwen/scratch/mira/e1-003384.h5')
+    print h5_data.shape, h5_data.data.shape
+    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
+    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
+    # test writing FLD data
+    write_hdf(h5_data, '/u/home/h/hwen/scratch/test.h5')
+    del h5_data
+    h5_data = read_hdf('/u/home/h/hwen/scratch/test.h5')
+    print h5_data.shape, h5_data.data.shape
+    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
+    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
+
 
 """
         
