@@ -9,6 +9,7 @@ import glob
 import numpy as np
 import analysis
 import adjust
+import copy
 from mpi4py import MPI
 
 
@@ -19,7 +20,8 @@ def print_help():
     print '  --dim={1|2|3}: finite difference in which dimension'
     print '  --rebin=[binx, biny, ...]: array_like, number of bins along each dimension'
     print '  --adjust=string: adjust the data before rebinning. ' \
-          '         String will be convert to str2keywords and call functions in adjust.py'
+          '         String will be convert to str2keywords object and call functions in adjust.py'
+    print '  --mininp=[pmin, pmax]: find mimimum value between pmin and pmax'
 
 
 comm = MPI.COMM_WORLD
@@ -28,7 +30,7 @@ size = comm.Get_size()
 argc = len(sys.argv)
 # # READ COMMAND LINE OPTIONS
 try:
-    opts, args = getopt.gnu_getopt(sys.argv[1:], "h:", ['dfdp', 'dim=', 'rebin=', 'adjust='])
+    opts, args = getopt.gnu_getopt(sys.argv[1:], "h:", ['dfdp', 'dim=', 'rebin=', 'adjust=', 'mininp='])
 except getopt.GetoptError:
     print_help()
     sys.exit(2)
@@ -47,7 +49,7 @@ if rank == 0:
 if outdir[-1] != '/':
     outdir += '/'
 # # SET DEFAULT OPTIONS
-dfdp, dim, rebin = False, None, False
+dfdp, pdim, rebin, mininp = False, None, False, None
 for opt, arg in opts:
     if opt == '-h':
         print_help()
@@ -55,15 +57,21 @@ for opt, arg in opts:
     elif opt == '--dfdp':
         dfdp = True
     elif opt == '--dim':
-        dim = eval(arg)
+        pdim = eval(arg)
     elif opt == '--rebin':
         rebin = eval(arg)
     elif opt == '--adjust':
         adjust_ops = str2keywords.str2keywords(arg)
+    elif opt == '--mininp':
+        mininp = eval(arg)
     else:
         print print_help()
         sys.exit(2)
 
+inddir = 'inddir/'
+if rank == 0:
+    if mininp and not os.path.exists(outdir + inddir):
+        os.makedirs(outdir + inddir)
 # # GET DATA STREAMS
 if rank == 0:
     flst = sorted(glob.glob(dirName + '/*.h5'))
@@ -89,25 +97,35 @@ ndim = h5_output.data.ndim
 
 # make some adjustments before processing data, useful for rebinning etc.
 if adjust_ops == 'subrange':
-    h5_output = adjust.subrange(h5_output, axes=h5_output.axes, **adjust_ops.keywords)
-
+    h5_output = adjust.subrange(h5_output, axesdata=h5_output.axes, **adjust_ops.keywords)
 # determine which dimension to differentiate
-if not dim:
-    for dim, ax in enumerate(h5_output.axes):
+if not pdim:
+    for pdim, ax in enumerate(h5_output.axes):
         if 'p' in ax.attributes['NAME'][0].lower():
             break
     else:
-        sys.exit('Cannot find velocity axis and no dim specified. Exiting...')
+        sys.exit('Cannot find velocity axis and no dim parameter specified. Exiting...')
 h5_output.NAME[0] += ' slope'
-# check if the origin is in the axis points to avoid divide by zero error
-paxis = h5_output.axes[dim].get_axis_points()
+paxis = h5_output.axes[pdim].get_axis_points()
+paxis_number = h5_output.axes[pdim].axis_number
 if rebin:
+    h5_output.data = analysis.rebin(h5_output.data, fac=rebin)
     h5_output.axes = analysis.update_rebin_axes(h5_output.axes, fac=rebin)
 # prepare a view of the axis data for later processing. this should work with ndarrays
 view_arr = np.ones((1, h5_output.data.ndim), int).ravel()
 # the axis numbering is in fortran order
-view_arr[-(dim+1)] = -1
+pdim = - (pdim + 1)
+view_arr[pdim] = -1
 paxis = paxis.reshape(view_arr)
+if mininp:
+    h5_output.data, h5_output.axes = adjust.subrange_phys(h5_output.data, bound=mininp,
+                                                          axis=paxis_number, axesdata=h5_output.axes)
+    getmin = str2keywords.str2keywords("nanmin;axis="+str(pdim))
+    min_index = str2keywords.str2keywords("argmin;axis="+str(pdim))
+    tmp_axis = copy.deepcopy(h5_output.axes)
+    h5_output.remove_axis(paxis_number)
+    h5_output.data = analysis.analysis(h5_output.data, [getmin])
+    pax = tmp_axis[-pdim - 1].get_axis_points()
 
 
 # # FOR EACH TIME STAMP DO SOMETHING
@@ -119,7 +137,7 @@ def foreach_decompose(file_num):
     if rebin:
         ffile.data = analysis.rebin(ffile.data, fac=rebin)
     # central difference for interior, forward and backward at the boundaries
-    grad = np.gradient(ffile.data, axis=((dim + ndim - 1) % ndim))
+    grad = np.gradient(ffile.data, axis=pdim)
     if dfdp:
         h5_output.data = grad
     else:
@@ -127,10 +145,18 @@ def foreach_decompose(file_num):
         # there are zeros because: 1. the origin is included in the axis points; 2. the tail of distribution is zero
         pf[pf == 0.] = 999999.0
         h5_output.data = np.divide(grad, pf)
+    if mininp:
+        h5_output.data = adjust.subrange_phys(h5_output.data, bound=mininp,
+                                              axis=paxis_number, axesdata=tmp_axis, update_axis=False)
+        tmp = h5_output.data.copy()
+        h5_output.data = analysis.analysis(h5_output.data, [getmin])
     h5_output.run_attributes['TIME'][0] = ffile.run_attributes['TIME'][0]
     h5_output.run_attributes['ITER'][0] = ffile.run_attributes['ITER'][0]
     newname = outdir + os.path.basename(f_filename)
     write_hdf(h5_output, newname)
+    if mininp:
+        h5_output.data = pax[analysis.analysis(tmp, [min_index])]
+        write_hdf(h5_output, outdir + inddir + os.path.basename(f_filename))
     return f_filename
 
 

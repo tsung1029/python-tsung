@@ -184,6 +184,9 @@ class hdf_data:
                 del self.axes[i]
         pass
 
+    def remove_axis(self, axis_index):
+        self.__remove_axis(axis_index)
+
     def __axis_exists(self, axis_index):
         for (i, axis) in enumerate(self.axes):
             if axis.axis_number == axis_index:

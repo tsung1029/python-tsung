@@ -1,6 +1,6 @@
 import numpy as np
 import str2keywords
-# from h5_utilities import read_hdf
+from h5_utilities import hdf_data
 from arraymask import mask
 from scipy.signal import hilbert
 
@@ -28,8 +28,9 @@ def update_rebin_axes(axisdata, fac, order='f'):
         factor = fac
     else:
         factor = fac[::-1]
-    for i, ax in enumerate(axisdata):
-        axisdata[-i].increment *= factor[i]
+    for i in xrange(len(axisdata)):
+        axisdata[-(i+1)].increment *= factor[i]
+        axisdata[-(i+1)].axis_numberpoints /= factor[i]
     return axisdata
 
 
@@ -54,15 +55,20 @@ def rebin(a, fac):
     return eval(''.join(evList))
 
 
-def analysis(data, ops_list, axes=None):
+def analysis(data_obj, ops_list, axes=None):
     """
     Analysis data and change axes accordingly
     
-    :param data: array_like data
+    :param data_obj: array_like data or hdf_data
     :param ops_list: list of operations (str2keywords objects or strings)
     :param axes: list of axes (data_basic_axis objects)
     :return: return processed data (and axes if provided)  
     """
+    if isinstance(data_obj, hdf_data):
+        axes = data_obj.axes
+        data = data_obj.data
+    else:
+        data = data_obj
     for op in ops_list:
         if isinstance(op, basestring):
             op = str2keywords.str2keywords(op)
@@ -107,10 +113,16 @@ def analysis(data, ops_list, axes=None):
                 data = getattr(np, op.id)(data, **op.keywords)
             else:
                 print('You used ' + op.id + ' but nothing happened!')
+    if isinstance(data_obj, hdf_data):
+        data_obj.data = data
+        data_obj.shape = data.shape
+        data_obj.axes = axes
+        return data_obj
     if axes:
         return data, axes
     else:
         return data
+
 
 # tests
 if __name__ == '__main__':

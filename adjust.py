@@ -14,19 +14,68 @@ from arraymask import mask
 from scipy.signal import hilbert
 
 
-def subrange(data_in, npts_start=None, npts_end=None, axes=None):
+def subrange_phys(data_in, bound=None, axis=None, axesdata=None, update_axis=True):
+    """
+    obtain a subarray of the data array
+
+    :param data_in: array_like
+    :param bound: tuple that marks the min and max of axes range after this function
+    :param axis: int that marks the axis number corresponds to range, assume to be the last dimension if not specified
+    :param axesdata: change the axesdata accordingly
+    :param update_axis: if true update axesdata
+    :return: hdf_data or (data, axes)
+    """
+    if isinstance(data_in, hdf_data):
+        data = data_in.data
+        axesdata = data_in.axes
+    else:
+        data = data_in
+    if (not axesdata) or (not bound):
+        return data_in
+    if not axis:
+        axis = axesdata[-1].axis_number
+    inds, inde = [0, ] * len(axesdata), np.array(data.shape)
+    for i, ax in enumerate(axesdata):
+        if ax.axis_number == axis:
+            inds[-(i+1)] = int(round((bound[0] - ax.axis_min) / ax.increment))
+            if inds[-(i+1)] < 0:
+                inds[-(i+1)] = 0
+            tmp = int(round((bound[1] - ax.axis_min) / ax.increment))
+            if tmp < inde[-(i+1)]:
+                inde[-(i+1)] = tmp
+        break
+    else:  # axis not found, do nothing
+        return data_in
+    inds, inde = tuple(inds), tuple(inde)
+    if update_axis:
+        data, axesdata = subrange(data, axesdata=axesdata, npts_start=inds, npts_end=inde)
+    else:
+        data = subrange(data, npts_start=inds, npts_end=inde)
+    if isinstance(data_in, hdf_data):
+        data_in.data = data
+        if update_axis:
+            data_in.axes = axesdata
+        data_in.shape = data.shape
+        return data_in
+    if update_axis:
+        return data, axesdata
+    else:
+        return data
+
+
+def subrange(data_in, npts_start=None, npts_end=None, axesdata=None):
     """
     obtain a subarray of the data array
 
     :param data_in: array_like
     :param npts_start: int or ints marks starting index
     :param npts_end: int or ints marks ending index
-    :param axes: change the axes accordingly
-    :return: data and axes (if provided)
+    :param axesdata: change the axesdata accordingly
+    :return: data and axesdata (if provided)
     """
     if isinstance(data_in, hdf_data):
         data = data_in.data
-        axes = data_in.axes
+        axesdata = data_in.axes
     else:
         data = data_in
     if npts_start or npts_end:
@@ -48,7 +97,7 @@ def subrange(data_in, npts_start=None, npts_end=None, axes=None):
             pos = 0
             for i, xmax in enumerate(data_in.XMAX):
                 for j in xrange(pos, ndim):
-                    if xmax == axes[j].axis_max:
+                    if xmax == axesdata[j].axis_max:
                         pos = j + 1
                         ind[i] = j
         # chcek if the range is legit
@@ -64,23 +113,24 @@ def subrange(data_in, npts_start=None, npts_end=None, axes=None):
                             npts_start[2]:npts_end[2], npts_start[3]:npts_end[3]]
         else:
             print "illegal subrange, do nothing."
-        if axes:
+        if axesdata:
             for di in xrange(1, ndim+1):
-                axes[-di].axis_min += axes[-di].increment * npts_start[di-1]
-                axes[-di].axis_numberpoints = npts_end[di-1] - npts_start[di-1]
-                axes[-di].axis_max = axes[-di].increment * axes[-di].axis_numberpoints + axes[-di].axis_min
+                axesdata[-di].axis_min += axesdata[-di].increment * npts_start[di-1]
+                axesdata[-di].axis_numberpoints = npts_end[di-1] - npts_start[di-1]
+                axesdata[-di].axis_max = (axesdata[-di].increment * axesdata[-di].axis_numberpoints +
+                                          axesdata[-di].axis_min)
     if isinstance(data_in, hdf_data):
         data_in.data = data
-        data_in.axes = axes
+        data_in.axes = axesdata
         data_in.shape = data.shape
         if xdim == 2:
-            data_in.XMAX = np.array([axes[ind[0]].axis_max, axes[ind[1]].axis_max])
+            data_in.XMAX = np.array([axesdata[ind[0]].axis_max, axesdata[ind[1]].axis_max])
         elif xdim == 1:
-            data_in.XMAX = np.array([axes[ind[0]].axis_max])
+            data_in.XMAX = np.array([axesdata[ind[0]].axis_max])
         elif xdim == 3:
-            data_in.XMAX = np.array([axes[ind[0]].axis_max, axes[ind[1]].axis_max, axes[ind[2]].axis_max])
+            data_in.XMAX = np.array([axesdata[ind[0]].axis_max, axesdata[ind[1]].axis_max, axesdata[ind[2]].axis_max])
         return data_in
-    if axes:
-        return data, axes
+    if axesdata:
+        return data, axesdata
     else:
         return data
