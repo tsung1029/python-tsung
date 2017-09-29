@@ -8,59 +8,69 @@ from pylab import *
 
 import os
 
+def fourier_in_space(data_bundle):
+    # here we fourier analyze the data in space
+    k_data=np.fft.fft(data_bundle.data,axis=1)
+    k_data_2=np.fft.fft(k_data,axis=0)
+    data_bundle.data=np.log(np.abs(k_data_2)+0.00000000001)
+    dt=data_bundle.axes[1].axis_max/(data_bundle.shape[0]-1)
+    dx=data_bundle.axes[0].axis_max/data_bundle.shape[1]
+    data_bundle.axes[1].axis_max=2.0*3.1415926/dt
+    data_bundle.axes[0].axis_max=2.0*3.1415926/dx
+
+    return data_bundle
+
+
 def plotme(hdf_data, data = None):
-	
+
 	data_to_use = hdf_data.data
 	if data != None:
 		data_to_use = data
-	
+
 	if len(data_to_use.shape) == 1:
 		plot_object =  plot(hdf_data.axes[0].get_axis_points(), data_to_use)
 		xlabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'] )[0]))
 		ylabel("%s \n %s"% ( hdf_data.data_attributes['LONG_NAME'][0], math_string(hdf_data.data_attributes['UNITS'][0])) )
 		return plot_object
-	
+
 	if len(data_to_use.shape) == 2:
 		extent_stuff = [	hdf_data.axes[0].axis_min, hdf_data.axes[0].axis_max, hdf_data.axes[1].axis_min, hdf_data.axes[1].axis_max]
-		plot_object = imshow(data_to_use, extent=extent_stuff, aspect='auto', cmap='Rainbow')
+		plot_object = imshow(data_to_use, extent=extent_stuff, aspect='auto', cmap='Rainbow',origin='lower')
 		cb=colorbar(plot_object)
 		cb.set_label("%s \n %s"% ( hdf_data.data_attributes['LONG_NAME'], hdf_data.data_attributes['UNITS']) )
 		xlabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'])[0] ))
 		ylabel("%s \n %s" % (hdf_data.axes[0].attributes['LONG_NAME'][0], math_string(hdf_data.axes[0].attributes['UNITS'][0] )))
 		#ylabel("%s \n %s"% ( hdf_data.data_attributes['LONG_NAME'], hdf_data.data_attributes['UNITS']) )
 
-	
+
 def math_string(input):
 	try:
 		input = input[0]
 	except:
 		pass
 		input = str(input)
-	v = input.replace('\\\\', '\\')
-	v = r"$" + v + "$"
-# print v
 	return v
+
 class hdf_data:
-	
 	def __init__(self):
 		self.filename = None
 		self.axes = []
 		self.data = None
 		self.data_attributes = {}
 		self.run_attributes = {}
-	
+
 	def clone(self):
 		out = hdf_data()
 		out.filename = filename
-		
+
 		for axis in self.axes:
 			out_axis = axis.clone()
-			
+
 		for key,value in self.data_attributes.items():
-			out.data_attributes [key] = value	
+			out.data_attributes [key] = value
 
 		for key,value in self.run_attributes.items():
-			out.run_attributes [key] = value	
+			out.run_attributes [key] = value
 	"""
 	def register_slice(self, data, list_indices_removed):
 		temp_list = []
@@ -68,12 +78,12 @@ class hdf_data:
 			if axis_index not in list_indices_removed:
 				temp_list.append(item)
 	"""
-	
+
 	#full_expression.append(x_slice)
 	def slice(self, x3=None, x2=None, x1=None, copy=False):
 		slice_index_array = []
 		target_obj = self
-		
+
 		temp_axes = list(self.axes)
 		for axis in temp_axes:
 			#print "HI!!!!"
@@ -85,9 +95,9 @@ class hdf_data:
 				selection = self.__slice_dim(x2, self.data, 2)
 			if axis.axis_number == 3:
 				selection = self.__slice_dim(x1, self.data, 1)
-			
+
 			slice_index_array.append(selection)
-		
+
         # print slice_index_array
 		new_data = self.data[slice_index_array]
 		#
@@ -95,12 +105,12 @@ class hdf_data:
 		self.data = None
 		self.data = new_data
 		self.shape = new_data.shape
-	
+
 	def __slice_dim(self, indices, data, axis_direction):
-		
+
 		if indices == None:
 			return slice(None, None, None)
-		
+
 		# a slicer tha tis just an interger
 		# 	means take a slice using that value.
 		#	so remove the coresponding axis.
@@ -108,7 +118,7 @@ class hdf_data:
 			if(len(self.axes) > 1):
 				self.__remove_axis(axis_direction)
 			return indices
-		
+
 		array_slice = None
 		#we accept lots of different specifications for the indecies.. let's sort it out.
 		if(indices != None):
@@ -128,7 +138,7 @@ class hdf_data:
 				# Well, what ever is there, just try to use it like a slicer
 				#		if it works, then go with it.
 				array_slice = indices
-			
+
 			try:
 				# These next lines just test that we have a 'slicer'
 				#		(or functional equivilent). If these fileds are not
@@ -136,52 +146,52 @@ class hdf_data:
 				temp = array_slice.start
 				temp = array_slice.stop
 				temp = array_slice.end
-				
+
 				#------START LOGIC---------------
 				# by this time, we have processed all different input types
 				# into a standard form: a slicer object named 'indices'
-				
+
 				# a slicer with start=None and end=None means take the whole axis as-is.
 				if array_slice.start == None and array_slice.stop == None:
 					return array_slice
-				
+
 				axis = self.get_axis(axis_direction)
-				
+
 				new_start_index = 0
 				new_stop_index = len(data)
 				if array_slice.start != None:
 					new_start_index = array_slice.start
 				if array_slice.stop != None:
 					new_stop_index = array_slice.stop
-					
-				
+
+
 				# now update the axis's data to reflect the new slice start/stop.
 				# update the Python side.
 				axis.axis_min = (axis.increment*new_start_index) + axis.axis_min
 				axis.axis_max = (axis.increment*new_stop_index) + axis.axis_min
 				self.axis_numberpoints = new_stop_index - new_stop_index
-				
+
 				#update to dictionary 'attributues' will happen in the
 				# 'write_hdf' function.,.. just to keep all HDF action localised to
 				# isolated routines.
 				return array_slice
-				
+
 				#TODO: handle the Elipsis object..
-				
+
 				# also can use test[ix_(a_dim,b_dim,c_dim)] but not quite flexable enough?
 			except:
 				# broken slicer..
 				raise Exception("Invalid indices for array slice")
-		
+
 		return slice(None, None, None)
-	
+
 	# return None if axis is not present.
 	def get_axis(self, axis_index):
 		for (i,axis) in enumerate(self.axes):
 			if axis.axis_number==axis_index:
 				return axis
 		return None
-	
+
 	def __remove_axis(self, axis_index):
 		for (i,axis) in enumerate(self.axes):
 			if axis.axis_number==axis_index:
@@ -192,10 +202,10 @@ class hdf_data:
 			if axis.axis_number==axis_index:
 				return True
 		return False
-		
+
 class data_basic_axis:
 	def __init__(self, axis_number, axis_min, axis_max, axis_numberpoints):
-		
+
 		self.axis_number 			= axis_number
 		self.axis_min 				= axis_min
 		self.axis_max 				= axis_max
@@ -211,61 +221,61 @@ class data_basic_axis:
 		out.increment = self.increment
 		for key,value in self.attributes.items():
 			out.attributes [key] = value
-		
+
 	def get_axis_points(self):
 		return np.arange(self.axis_min, self.axis_max, self.increment)
 
 def read_hdf(filename):
 	"""
-	HDF reader for Osiris/Visxd compatable HDF files... This will slurp in the data
-	and the attributes that describe the data (e.g. title, units, scale). 
-	
+	HDF reader for Osiris/Visxd compatable HDF files... This will slurp in the
+	data and the attributes that describe the data (e.g. title, units, scale).
+
 	Usage:
-			diag_data = read_hdf('e1-000006.h5')
-			
-			data = diag_data.data                 		# gets the raw data
-			print diag_data.data.shape					# prints the dimension of the raw data
-			print diag_data.run_attributes['TIME']		# prints the simulation time associated with the hdf5 file
-			diag_data.data_attributes['UNITS']     		# print units of the dataset points
-			list(diag_data.data_attributes)         	# lists all variables in 'data_attributes'
-			list(diag_data.run_attributes)         		# lists all vairables in 'run_attributes'
-			print diag_data.axes[0].attributes['UNITS']	# prints units of  X-axis
-			list(diag_data.axes[0].attributes['UNITS'])	# lists all variables of the X-axis
-			
-			diag_data.slice( x=34, y=(10,30) )
-			diag_data.slice(x=3)
-			
-			diag_data.write(diag_data, 'filename.h5')	# writes out Visxd compatiable HDF5 data.
-			
-	
+		diag_data = read_hdf('e1-000006.h5')
+
+		data = diag_data.data                 		# gets the raw data
+		print diag_data.data.shape					# prints the dimension of the raw data
+		print diag_data.run_attributes['TIME']		# prints the simulation time associated with the hdf5 file
+		diag_data.data_attributes['UNITS']     		# print units of the dataset points
+		list(diag_data.data_attributes)         	# lists all variables in 'data_attributes'
+		list(diag_data.run_attributes)         		# lists all vairables in 'run_attributes'
+		print diag_data.axes[0].attributes['UNITS']	# prints units of  X-axis
+		list(diag_data.axes[0].attributes['UNITS'])	# lists all variables of the X-axis
+
+	diag_data.slice( x=34, y=(10,30) )
+	diag_data.slice(x=3)
+
+	diag_data.write(diag_data, 'filename.h5')	# writes out Visxd compatiable HDF5 data.
+
+
 	(See bottom of file 'hdf.py' for more techincal information.)
-	
+
 	"""
-	
-	
+
+
 	data_file1 = h5py.File(filename, 'r')
-	
+
 	the_data_hdf_object = scan_hdf5_file_for_main_data_array(data_file1)
 	dim = len(the_data_hdf_object.shape)
-	
+
 	data_bundle = hdf_data()
 	data_bundle.filename = filename
 	data_bundle.dim = len(the_data_hdf_object.shape)
 	data_bundle.shape = list(the_data_hdf_object.shape)
-	
+
 	# now read in attributes of the ROOT of the hdf5.. t
 	#   there's lots of good info there.
 	for key,value in data_file1.attrs.items():
 		data_bundle.run_attributes[key] = value
 		setattr(data_bundle, str(key), value)
-	
-	# attach attributes assigned to the data array to 
+
+	# attach attributes assigned to the data array to
 	#	the hdf_data.data_attrs object
 	for key, value in the_data_hdf_object.attrs.items():
 		data_bundle.data_attributes[key] = value
-	
+
 	axis_number = 1
-	
+
 	while True:
 		try:
 			# try to open up another AXIS object in the HDF's attribute directory
@@ -276,7 +286,7 @@ def read_hdf(filename):
 			axis_min = axis_data.item(0)
 			axis_max = axis_data.item(1)
 			axis_numberpoints = the_data_hdf_object.shape[axis_number-1]
-			
+
 			data_axis = data_basic_axis(axis_number, axis_min, axis_max, axis_numberpoints)
 			data_bundle.axes.append(data_axis)
 			# get the attributes for the JUST ADDED AXIS
@@ -285,7 +295,7 @@ def read_hdf(filename):
 		except:
 			break
 		axis_number += 1
-	
+
 	#TODO: probabaly better way to do this..
 	if dim == 1:
 		data_bundle.data = the_data_hdf_object[:]
@@ -295,10 +305,11 @@ def read_hdf(filename):
 		data_bundle.data = the_data_hdf_object[:][:][:]
 	else:
 		raise ValueException("You attempted to read in an Osiris diagnostic which had data of dimension greater then 3.. cant do that yet.")
-	
+
 	data_file1.close()
+
 	return data_bundle
-	
+
 
 def scan_hdf5_file_for_main_data_array(file):
 	datasetName = ""
@@ -308,20 +319,20 @@ def scan_hdf5_file_for_main_data_array(file):
 			break
 	return file[datasetName]
 
-	
+
 if __name__=="__main__":
-	
+
 	data = read_hdf('x3x2x1-s1-000090.h5')
-	
+
 #	print data.data_attributes
 #	print dir(data.axes[0])
 #	print
 #	print dir(data)
-	
+
 
 
 def write_hdf(data, filename, dataset_name = None, write_data = True):
-	
+
         if(os.path.isfile(filename)):
             os.remove(filename)
 	try:
@@ -336,16 +347,16 @@ def write_hdf(data, filename, dataset_name = None, write_data = True):
 			type = data.dtype
 			data_object = hdf_data()
 			data_object.data = data
-			
+
 		except:
 			try:
 				#maybe it's something we can wrap in a numpy array
 				data = np.array(data)
 				data_object = hdf_data()
-				data_object.data = data				
+				data_object.data = data
 			except:
 				raise Exception("Invalid data type.. we need a 'hdf5_data', numpy array, or somehitng that can go in a numy array")
-	
+
 	# now let's make the hdf_data() compatible with VisXd and such...
 	# take care of the NAME attribute.
 	if dataset_name != None:
@@ -355,10 +366,10 @@ def write_hdf(data, filename, dataset_name = None, write_data = True):
 			current_NAME_attr = data_object.run_attributes['NAME'][0]
 		except:
 			current_NAME_attr = "Data"
-	
+
 	# now put the data in a group called this...
-   
-        
+
+
 	if(filename != None):
 		file = h5py.File(filename)
 		data_object.filename = filename
@@ -366,7 +377,7 @@ def write_hdf(data, filename, dataset_name = None, write_data = True):
 		file = h5py.File(filename)
 	else:
 		raise Exception("You did not specify a filename!!!")
-	
+
     #	print current_NAME_attr
 	h5dataset = file.create_dataset(current_NAME_attr, data_object.shape, data=data_object.data)
 	# these are required.. so make defaults ones...
@@ -376,7 +387,7 @@ def write_hdf(data, filename, dataset_name = None, write_data = True):
     #print data_object.data_attributes
 	for key,value in data_object.data_attributes.items():
 		h5dataset.attrs[key] = value
-	
+
 	# these are required so we make defaults..
 	file.attrs['DT'] = 1.0
 	file.attrs['ITER'] = 0
@@ -399,7 +410,7 @@ def write_hdf(data, filename, dataset_name = None, write_data = True):
 		xmax[i] =  data_object.axes[i].axis_max
 	file.attrs['XMIN']  = xmin
 	file.attrs['XMAX']  = xmax
-	
+
 	# now create the axis objects....
 	# first see if the AXIS group (folder) exists..
 	if 'AXIS' not in file:
@@ -421,11 +432,11 @@ def write_hdf(data, filename, dataset_name = None, write_data = True):
 			axis_data = file.create_dataset(axis_name, (2,), 'float64')
 		else:
 			axis_data = file[axis_data]
-		
+
 		# set the extent to the data we have...
 		axis_data[0] = data_object.axes[i].axis_min
 		axis_data[1] = data_object.axes[i].axis_max
-		
+
 		# now make attributes for axis that are required..
 		axis_data.attrs['UNITS'] = ""
 		axis_data.attrs['LONG_NAME'] = ""
@@ -434,11 +445,11 @@ def write_hdf(data, filename, dataset_name = None, write_data = True):
 		# fill in any values we have storedd in the Axis object
 		for key,value in data_object.axes[i].attributes.items():
 			axis_data.attrs[key] = value
-	
-	
+
+
 	if write_data:
 		file.close()
-	
+
 #----------------------------------------------------------------------------------------------------------
 #					Setup maps etc...
 #----------------------------------------------------------------------------------------------------------
@@ -475,18 +486,18 @@ def init_colormap():
 init_colormap()
 
 """
-		
+
 	A Minimum is assumed about the HDF5 structure. What is assumed is:
 		0. 	There is an attribute in the root of the hdf5 named 'NAME'
 				(you would access it with: h5py_file['NAME']). This contains the
-				array entry of the that holds the main data.. so say h5py_file['NAME']) = 'p1x1'. 
-				Then the main data array will be under the name 'p1x1'. 
+				array entry of the that holds the main data.. so say h5py_file['NAME']) = 'p1x1'.
+				Then the main data array will be under the name 'p1x1'.
 				You could get with:    h5py_file['p1x1'].value
-		
+
 		1.		In the HDF, the is a group (a group is just a folder in MAC osx) named 'AXIS'.
 				Inside that folder sits the info about each axis in the HDF dataset. For 1D data,
-				there is 1 entry: AXIS/AXIS1. If you get the array data here 
-				using:        h5py_file['AXIS/AXIS1'].value 
+				there is 1 entry: AXIS/AXIS1. If you get the array data here
+				using:        h5py_file['AXIS/AXIS1'].value
 				It will be a 1D array with only 2 values; these are the min/max of the axis when plotting.
 				Each axis also had some attributes. The 4 usual ones are TYPE,UNITS,NAME,LONG_NAME (type
 				is linear or log etc).. Others are string that can be used for axis labels. In 2D there are
@@ -497,15 +508,15 @@ init_colormap()
 				a 2D etc.. This indo is in attributes attched to the main data array we found in Step 0.
 				It has 2 attributes: UNITS and LONG NAME for labeling the data when plotted.
 		3. The root has lots of attributes. It has stuff about time:
-					ITER = iteration data is showing. DT=step size used, 
+					ITER = iteration data is showing. DT=step size used,
 					TIME=simualtion time data is showing, TIME_UNITS=string.. good label to put on plots.
-					"MOVE C" = [x, y, z] where 0 for a componet means that component isn'i interested 
+					"MOVE C" = [x, y, z] where 0 for a componet means that component isn'i interested
 									and a 1 means the compent wants to/or have done this ("MOVE C" tells us moving
 									window directions. PERODIC is same idea as "MOVE C".. just showing perodic directions.
-					"XMIN" = [x_min, y_min, z_min] and "XMAX" = [x_max, y_max, z_max].. 
+					"XMIN" = [x_min, y_min, z_min] and "XMAX" = [x_max, y_max, z_max]..
 					always 3 compents.
 		4. ALL DATA/ATTRIBUTES ARE COPIED OUT OF HDF INTO MEMORY. Then HDF file is closed. There are other ways.. and for
-			very large files that wont fit in memory, other options will have to be used that allow 'streaming' of the 
+			very large files that wont fit in memory, other options will have to be used that allow 'streaming' of the
 			input files.
-				
+
 """
