@@ -10,8 +10,6 @@ than shifting them aroud or neglecting part of the data.
 import numpy as np
 import str2keywords
 from h5_utilities import hdf_data
-from arraymask import mask
-from scipy.signal import hilbert
 
 
 def subrange_phys(data_in, bound=None, axis=None, axesdata=None, update_axis=True):
@@ -134,3 +132,23 @@ def subrange(data_in, npts_start=None, npts_end=None, axesdata=None):
         return data, axesdata
     else:
         return data
+
+
+def adjust(data_obj, ops_list):
+    """
+    Analysis data and change axes accordingly
+
+    :param data_obj: hdf_data
+    :param ops_list: list of operations (str2keywords objects or strings)
+    :return: return processed data
+    """
+    if not isinstance(data_obj, hdf_data):
+        raise TypeError('Expecting hdf_data')
+    for op in ops_list:
+        if isinstance(op, basestring):
+            op = str2keywords.str2keywords(op)
+        if op == 'subrange':
+            data_obj = subrange(data_obj, **op.keywords)
+        elif op == 'subrange_phys':
+            data_obj = subrange_phys(data_obj, **op.keywords)
+    return data_obj
