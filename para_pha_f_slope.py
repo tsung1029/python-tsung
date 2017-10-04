@@ -22,6 +22,7 @@ def print_help():
     print '  --adjust=string: adjust the data before rebinning. ' \
           '         String will be convert to str2keywords object and call functions in adjust.py'
     print '  --mininp=[pmin, pmax]: find mimimum value between pmin and pmax'
+    print '  --uth=uth: themal velocity normalized to speed of light. 1.0 by default'
 
 
 comm = MPI.COMM_WORLD
@@ -30,7 +31,7 @@ size = comm.Get_size()
 argc = len(sys.argv)
 # # READ COMMAND LINE OPTIONS
 try:
-    opts, args = getopt.gnu_getopt(sys.argv[1:], "h:", ['dfdp', 'dim=', 'rebin=', 'adjust=', 'mininp='])
+    opts, args = getopt.gnu_getopt(sys.argv[1:], "h:", ['dfdp', 'dim=', 'rebin=', 'adjust=', 'mininp=', 'uth='])
 except getopt.GetoptError:
     print_help()
     sys.exit(2)
@@ -49,7 +50,7 @@ if rank == 0:
 if outdir[-1] != '/':
     outdir += '/'
 # # SET DEFAULT OPTIONS
-dfdp, pdim, rebin, mininp = False, None, False, None
+dfdp, pdim, rebin, mininp, uth = False, None, False, None, 1.0
 for opt, arg in opts:
     if opt == '-h':
         print_help()
@@ -64,6 +65,8 @@ for opt, arg in opts:
         adjust_ops = str2keywords.str2keywords(arg)
     elif opt == '--mininp':
         mininp = eval(arg)
+    elif opt == '--uth':
+        uth = float(eval(arg))
     else:
         print print_help()
         sys.exit(2)
@@ -113,6 +116,7 @@ if rebin:
     h5_output.axes = analysis.update_rebin_axes(h5_output.axes, fac=rebin)
 # prepare a view of the axis data for later processing. this should work with ndarrays
 view_arr = np.ones((1, h5_output.data.ndim), int).ravel()
+dp = h5_output.axes[pdim].increment
 # the axis numbering is in fortran order
 pdim = - (pdim + 1)
 view_arr[pdim] = -1
@@ -141,7 +145,7 @@ def foreach_decompose(file_num):
     if dfdp:
         h5_output.data = grad
     else:
-        pf = - paxis * ffile.data
+        pf = - paxis * ffile.data * dp / uth**2
         # there are zeros because: 1. the origin is included in the axis points; 2. the tail of distribution is zero
         pf[pf == 0.] = 999999.0
         h5_output.data = np.divide(grad, pf)
