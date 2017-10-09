@@ -118,18 +118,18 @@ if rebin:
 view_arr = np.ones((1, h5_output.data.ndim), int).ravel()
 dp = h5_output.axes[pdim].increment
 # the axis numbering is in fortran order
-pdim = - (pdim + 1)
+# pdim = - (pdim + 1)
 view_arr[pdim] = -1
 paxis = paxis.reshape(view_arr)
 if mininp:
     h5_output.data, h5_output.axes = adjust.subrange_phys(h5_output.data, bound=mininp,
-                                                          axis=paxis_number, axesdata=h5_output.axes)
+                                                          axis=pdim, axesdata=h5_output.axes)
     getmin = str2keywords.str2keywords("nanmin;axis="+str(pdim))
     min_index = str2keywords.str2keywords("argmin;axis="+str(pdim))
     tmp_axis = copy.deepcopy(h5_output.axes)
     h5_output.remove_axis(paxis_number)
     h5_output.data = analysis.analysis(h5_output.data, [getmin])
-    pax = tmp_axis[-pdim - 1].get_axis_points()
+    pax = tmp_axis[pdim].get_axis_points()
 
 
 # # FOR EACH TIME STAMP DO SOMETHING
@@ -151,7 +151,7 @@ def foreach_decompose(file_num):
         h5_output.data = np.divide(grad, pf)
     if mininp:
         h5_output.data = adjust.subrange_phys(h5_output.data, bound=mininp,
-                                              axis=paxis_number, axesdata=tmp_axis, update_axis=False)
+                                              axis=pdim, axesdata=tmp_axis, update_axis=False)
         tmp = h5_output.data.copy()
         h5_output.data = analysis.analysis(h5_output.data, [getmin])
     h5_output.run_attributes['TIME'][0] = ffile.run_attributes['TIME'][0]

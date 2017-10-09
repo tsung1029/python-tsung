@@ -33,17 +33,13 @@ def subrange_phys(data_in, bound=None, axis=None, axesdata=None, update_axis=Tru
     if not axis:
         axis = axesdata[-1].axis_number
     inds, inde = [0, ] * len(axesdata), np.array(data.shape)
-    for i, ax in enumerate(axesdata):
-        if ax.axis_number == axis:
-            inds[-(i+1)] = int(round((bound[0] - ax.axis_min) / ax.increment))
-            if inds[-(i+1)] < 0:
-                inds[-(i+1)] = 0
-            tmp = int(round((bound[1] - ax.axis_min) / ax.increment))
-            if tmp < inde[-(i+1)]:
-                inde[-(i+1)] = tmp
-        break
-    else:  # axis not found, do nothing
-        return data_in
+    ax = axesdata[axis]
+    inds[axis] = int(round((bound[0] - ax.axis_min) / ax.increment))
+    if inds[axis] < 0:
+        inds[axis] = 0
+    tmp = int(round((bound[1] - ax.axis_min) / ax.increment))
+    if tmp < inde[axis]:
+        inde[axis] = tmp
     inds, inde = tuple(inds), tuple(inde)
     if update_axis:
         data, axesdata = subrange(data, axesdata=axesdata, npts_start=inds, npts_end=inde)
@@ -99,7 +95,7 @@ def subrange(data_in, npts_start=None, npts_end=None, axesdata=None):
                         pos = j + 1
                         ind[i] = j
         # chcek if the range is legit
-        if npts_start < npts_end < data.shape:
+        if npts_start < npts_end <= data.shape:
             if ndim == 2:
                 data = np.copy(data[npts_start[0]:npts_end[0], npts_start[1]:npts_end[1]])
             elif ndim == 3:
@@ -112,11 +108,11 @@ def subrange(data_in, npts_start=None, npts_end=None, axesdata=None):
         else:
             print "illegal subrange, do nothing."
         if axesdata:
-            for di in xrange(1, ndim+1):
-                axesdata[-di].axis_min += axesdata[-di].increment * npts_start[di-1]
-                axesdata[-di].axis_numberpoints = npts_end[di-1] - npts_start[di-1]
-                axesdata[-di].axis_max = (axesdata[-di].increment * axesdata[-di].axis_numberpoints +
-                                          axesdata[-di].axis_min)
+            for di in xrange(ndim):
+                axesdata[di].axis_min += axesdata[di].increment * npts_start[di]
+                axesdata[di].axis_numberpoints = npts_end[di] - npts_start[di]
+                axesdata[di].axis_max = (axesdata[di].increment * axesdata[di].axis_numberpoints +
+                                         axesdata[di].axis_min)
     if isinstance(data_in, hdf_data):
         data_in.data = data
         data_in.axes = axesdata

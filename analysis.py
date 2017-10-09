@@ -29,8 +29,8 @@ def update_rebin_axes(axisdata, fac, order='f'):
     else:
         factor = fac[::-1]
     for i in xrange(len(axisdata)):
-        axisdata[-(i+1)].increment *= factor[i]
-        axisdata[-(i+1)].axis_numberpoints /= factor[i]
+        axisdata[i].increment *= factor[i]
+        axisdata[i].axis_numberpoints /= factor[i]
     return axisdata
 
 
