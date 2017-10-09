@@ -772,7 +772,7 @@ class Subplot(Plot):
                 return (axis[1] - axis[0]) * np.arange(NX1) / float(NX1) + axis[0]
             except:
                 h5_data = read_hdf(file.filename)
-                for ii in range(size(h5_data.axes)):
+                for ii in range(np.size(h5_data.axes)):
                     if label == h5_data.axes[ii].attributes['NAME']:
                         break
                 axis = [h5_data.axes[ii].axis_min, h5_data.axes[ii].axis_max]
