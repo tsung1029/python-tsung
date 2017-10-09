@@ -281,7 +281,7 @@ def read_hdf(filename):
             axis_numberpoints = the_data_hdf_object.shape[-axis_number]
 
             data_axis = data_basic_axis(axis_number, axis_min, axis_max, axis_numberpoints)
-            data_bundle.axes.append(data_axis)
+            data_bundle.axes.insert(0, data_axis)
             # get the attributes for the JUST ADDED AXIS
             for key, value in axis.attrs.items():
                 data_axis.attributes[key] = value
@@ -406,7 +406,7 @@ def write_hdf(data, filename, dataset_name=None, write_data=True):
                 del h5file[axis_name]
     # now go through and set/create our axes HDF entries.
     for i in range(0, number_axis_objects_we_need):
-        axis_name = "AXIS/AXIS%d" % (i + 1)
+        axis_name = "AXIS/AXIS%d" % (number_axis_objects_we_need - i)
         if axis_name not in h5file:
             axis_data = h5file.create_dataset(axis_name, (2,), 'float64')
         else:
