@@ -1,5 +1,5 @@
 from h5_utilities import *
-import multiprocessing as mp
+# import multiprocessing as mp
 import sys
 import getopt
 import glob
@@ -68,7 +68,7 @@ else:
 part = total_time / size
 
 
-# for file_number in range(i_begin, i_end):
+# for all outputs at the same time
 def foreach_sum(file_num):
     tmp = 0
     for i in xrange(indirc):
@@ -84,12 +84,12 @@ def foreach_sum(file_num):
 
 
 if __name__ == '__main__':
-    pool = mp.Pool()
-    time_i = range(i_begin, i_end)
-    pool.map(foreach_sum, time_i)
-    pool.close()
-    pool.join()
-
-# print 'after write'
+    # pool = mp.Pool()
+    # time_i = range(i_begin, i_end)
+    # pool.map(foreach_sum, time_i)
+    # pool.close()
+    # pool.join()
+    for time_i in xrange(i_begin, i_end):
+        foreach_sum(time_i)
 
 comm.barrier()
