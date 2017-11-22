@@ -9,14 +9,11 @@ def __apply_mask(arr, ax):
         for axi in ax[0]:
             arr[axi[0]:axi[1]] = 0
     elif dim == 2:
-        for ayi in ax[0]:
-            for axi in ax[1]:
-                arr[ayi[0]:ayi[1], axi[0]:axi[1]] = 0
+        for ayi, axi in zip(ax[0], ax[1]):
+            arr[ayi[0]:ayi[1], axi[0]:axi[1]] = 0
     elif dim == 3:
-        for azi in ax[0]:
-            for ayi in ax[1]:
-                for axi in ax[2]:
-                    arr[azi[0]:azi[1], ayi[0]:ayi[1], axi[0]:axi[1]] = 0
+        for azi, ayi, axi in zip(ax[0], ax[1], ax[2]):
+            arr[azi[0]:azi[1], ayi[0]:ayi[1], axi[0]:axi[1]] = 0
     return arr
 
 
@@ -38,17 +35,17 @@ def mask(arr, axes=None, region=None, symmetric=True):
     ax = [[], [], [], []]
     for ci in region:
         # arr is in Fortran ordering: arr[z,y,x] for example
-        di = int(ci[0][1]) - 1
-        lu = ci[1:3]
+        di = int(ci[0][1])
+        lu = np.array(ci[1:3])
         # use axes to convert coordinates to array indices
         if axes:
-            lu = np.round((ci[1:3] - axes[di].axis_min) / axes[di].increment).astype(int)
+            lu = np.round((np.array(ci[1:3]) - axes[-di].axis_min) / axes[-di].increment).astype(int)
             # check array boundaries
             if lu[0] < 0:
                 lu[0] = 0
-            if lu[1] > sz[dim - di - 1]:
-                lu[1] = sz[dim - di - 1]
-        ax[dim - di - 1].append(lu[:])
+            if lu[1] > sz[-di]:
+                lu[1] = sz[-di]
+        ax[dim - di].append(lu[:])
     # set default region for directions not set
     for i in range(dim):
         if not ax[i]:
@@ -59,7 +56,7 @@ def mask(arr, axes=None, region=None, symmetric=True):
         for i in range(dim):
             for j, ri in enumerate(ax[i]):
                 ax[i][j] = sz[i] - ri[1], sz[i] - ri[0]
-    arr = __apply_mask(arr, ax)
+        arr = __apply_mask(arr, ax)
     return arr
 
 

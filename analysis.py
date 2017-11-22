@@ -55,17 +55,17 @@ def rebin(a, fac):
     return eval(''.join(evList))
 
 
-def analysis(data_obj, ops_list, axes=None):
+def analysis(data_obj, ops_list, axesdata=None):
     """
     Analysis data and change axes accordingly
     
     :param data_obj: array_like data or hdf_data
     :param ops_list: list of operations (str2keywords objects or strings)
-    :param axes: list of axes (data_basic_axis objects)
+    :param axesdata: list of axes (data_basic_axis objects)
     :return: return processed data (and axes if provided)  
     """
     if isinstance(data_obj, hdf_data):
-        axes = data_obj.axes
+        axesdata = data_obj.axes
         data = data_obj.data
     else:
         data = data_obj
@@ -75,9 +75,9 @@ def analysis(data_obj, ops_list, axes=None):
         if op == 'abs':
             data = np.abs(data)
         elif op == 'log':
-            data = np.log(np.abs(data) + 1e-11)
+            data = np.log(np.abs(data) + np.finfo('float64').eps)
         elif op == 'log10':
-            data = np.log10(np.abs(data) + 1e-11)
+            data = np.log10(np.abs(data) + np.finfo('float64').eps)
         elif op == 'square':
             data = np.square(data)
         elif op == 'sqrt':
@@ -87,21 +87,21 @@ def analysis(data_obj, ops_list, axes=None):
         elif op == 'fft':
             ax = op.keywords.get('axes', None)
             data = np.fft.fftshift(np.fft.fftn(np.fft.ifftshift(data, axes=ax), **op.keywords), axes=ax)
-            if axes:
-                for i, ax in enumerate(axes):
-                    axes[i] = update_fft_axes(axes[i], forward=True)
+            if axesdata:
+                for i, ax in enumerate(axesdata):
+                    axesdata[i] = update_fft_axes(axesdata[i], forward=True)
         elif op == 'ifft':
             ax = op.keywords.get('axes', None)
             data = np.fft.ifftshift(np.fft.ifftn(np.fft.fftshift(data, axes=ax), **op.keywords), axes=ax)
-            if axes:
-                for i, ax in enumerate(axes):
-                    axes[i] = update_fft_axes(axes[i], forward=False)
+            if axesdata:
+                for i, ax in enumerate(axesdata):
+                    axesdata[i] = update_fft_axes(axesdata[i], forward=False)
         elif op == 'mask':
             data = mask(data, **op.keywords)
         elif op == 'rebin':
             data = rebin(data, **op.keywords)
-            if axes:
-                axes = update_rebin_axes(axes, **op.keywords)
+            if axesdata:
+                axesdata = update_rebin_axes(axesdata, **op.keywords)
         else:
             # (*NOT SAFE*) advance user may call functions from any known libaries (only numpy for now)
             # ********* CAUTIONS *************
@@ -116,10 +116,10 @@ def analysis(data_obj, ops_list, axes=None):
     if isinstance(data_obj, hdf_data):
         data_obj.data = data
         data_obj.shape = data.shape
-        data_obj.axes = axes
+        data_obj.axes = axesdata
         return data_obj
-    if axes:
-        return data, axes
+    if axesdata:
+        return data, axesdata
     else:
         return data
 

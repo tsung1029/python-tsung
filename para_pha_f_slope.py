@@ -47,6 +47,7 @@ if os.path.realpath(dirName) == os.path.realpath(outdir):
 if rank == 0:
     if not os.path.exists(outdir):
         os.makedirs(outdir)
+comm.barrier()
 if outdir[-1] != '/':
     outdir += '/'
 # # SET DEFAULT OPTIONS
@@ -121,6 +122,7 @@ dp = h5_output.axes[pdim].increment
 # pdim = - (pdim + 1)
 view_arr[pdim] = -1
 paxis = paxis.reshape(view_arr)
+paxis = dp / uth**2 * paxis / (1 + paxis**2)**2
 if mininp:
     h5_output.data, h5_output.axes = adjust.subrange_phys(h5_output.data, bound=mininp,
                                                           axis=pdim, axesdata=h5_output.axes)
@@ -145,7 +147,7 @@ def foreach_decompose(file_num):
     if dfdp:
         h5_output.data = grad
     else:
-        pf = - paxis * ffile.data * dp / uth**2
+        pf = - paxis * ffile.data
         # there are zeros because: 1. the origin is included in the axis points; 2. the tail of distribution is zero
         pf[pf == 0.] = 999999.0
         h5_output.data = np.divide(grad, pf)
