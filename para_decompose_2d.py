@@ -11,14 +11,14 @@ from mpi4py import MPI
 
 
 def print_help():
-    print 'para_decompose_2d.py [options] <InputDir> <OutputDir>'
-    print 'options:'
-    print '  --avg: look into the -savg directory'
-    print '  --env: look into the -senv directory'
-    print '  --blockx=[lower, upper]: set kx between to be zeros'
-    print '  --blocky=[lower, upper]: set ky between to be zeros'
-    print '  --ifftdim=[x1,x2]: which direction for inverse fourier transform'
-    print '  --ocomp=[l,t1,t2,t]: which component to output'
+    print('para_decompose_2d.py [options] <InputDir> <OutputDir>')
+    print('options:')
+    print('  --avg: look into the -savg directory')
+    print('  --env: look into the -senv directory')
+    print('  --blockx=[lower, upper]: set kx between to be zeros')
+    print('  --blocky=[lower, upper]: set ky between to be zeros')
+    print('  --ifftdim=[x1,x2]: which direction for inverse fourier transform')
+    print('  --ocomp=[l,t1,t2,t]: which component to output')
 
 
 comm = MPI.COMM_WORLD
@@ -61,7 +61,7 @@ for opt, arg in opts:
     elif opt == '--ocomp':
         ocomp = arg.lower()
     else:
-        print print_help()
+        print(print_help())
         sys.exit(2)
 
 # # GET DATA STREAMS
@@ -75,7 +75,7 @@ e1, e2 = elst['e1'], elst['e2']
 
 # # divide the task
 total_time = len(e1)
-my_share = total_time / size
+my_share = total_time // size
 i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share

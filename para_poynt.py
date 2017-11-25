@@ -8,11 +8,11 @@ from mpi4py import MPI
 
 
 def print_help():
-    print 'para_poynt.py [options] <InputDir> <OutputName>'
-    print 'options:'
-    print '  -n: average over n grid points at entrance (32 by default)'
-    print '  --avg: look into the -savg directory'
-    print '  --env: look into the -senv directory'
+    print('para_poynt.py [options] <InputDir> <OutputName>')
+    print('options:')
+    print('  -n: average over n grid points at entrance (32 by default)')
+    print('  --avg: look into the -savg directory')
+    print('  --env: look into the -senv directory')
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -44,7 +44,7 @@ for opt, arg in opts:
     elif opt == '-n':
         n_avg = arg
     else:
-        print print_help()
+        print(print_help())
         sys.exit(2)
 
 e2 = sorted(glob.glob(dirName + '/MS/FLD/e2' + dir_ext + '/*.h5'))
@@ -52,7 +52,7 @@ e3 = sorted(glob.glob(dirName + '/MS/FLD/e3' + dir_ext + '/*.h5'))
 b2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
 b3 = sorted(glob.glob(dirName + '/MS/FLD/b3' + dir_ext + '/*.h5'))
 total_time = len(e2)
-my_share = total_time / size
+my_share = total_time // size
 i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share
@@ -69,10 +69,10 @@ ny = array_dims[1]
 time_step = h5_data.run_attributes['TIME'][0]
 h5_output = hdf_data()
 h5_output.shape = [total_time, ny]
-print 'nx=' + repr(nx)
-print 'ny=' + repr(ny)
-print 'time_step=' + repr(time_step)
-print 'total_time=' + repr(total_time)
+print('nx=' + repr(nx))
+print('ny=' + repr(ny))
+print('time_step=' + repr(time_step))
+print('total_time=' + repr(total_time))
 h5_output.data = np.zeros((total_time, ny))
 income = np.zeros((total_time, ny))
 
@@ -109,7 +109,7 @@ for file_number in range(i_begin, i_end):
     e3_filename = e3[file_number]
     b2_filename = b2[file_number]
     b3_filename = b3[file_number]
-    print e2_filename
+    print(e2_filename)
     e2_data = read_hdf(e2_filename)
     e3_data = read_hdf(e3_filename)
     b2_data = read_hdf(b2_filename)

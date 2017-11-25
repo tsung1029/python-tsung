@@ -102,7 +102,7 @@ class hdf_data:
         # a slicer tha tis just an interger
         #     means take a slice using that value.
         #    so remove the coresponding axis.
-        if isinstance(indices, (int, long)):
+        if isinstance(indices, int):
             if (len(self.axes) > 1):
                 self.__remove_axis(axis_direction)
             return indices
@@ -395,7 +395,7 @@ def write_hdf(data, filename, dataset_name=None, write_data=True):
     if 'AXIS' not in h5file:
         grp = h5file.create_group("AXIS")
     # now go though the group and remove any extra AXISx arrays
-    number_axis_object_present = len(h5file['AXIS'].keys())
+    number_axis_object_present = len(list(h5file['AXIS'].keys()))
     number_axis_objects_we_need = len(data_object.axes)
     for i in range(0, number_axis_object_present):
         axis_name = "AXIS/AXIS%d" % (i + 1)
@@ -487,31 +487,31 @@ init_colormap()
 if __name__ == "__main__":
     # test reading PHA data
     h5_data = read_hdf('/u/home/h/hwen/scratch/postdev/x2x1p1-electrons-000000.h5')
-    print h5_data.shape, h5_data.data.shape
-    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
-    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
-    print h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max
+    print(h5_data.shape, h5_data.data.shape)
+    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
+    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
+    print(h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max)
     # test writing PHA data
     write_hdf(h5_data, '/u/home/h/hwen/scratch/test.h5')
     del h5_data
     h5_data = read_hdf('/u/home/h/hwen/scratch/test.h5')
-    print h5_data.shape, h5_data.data.shape
-    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
-    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
-    print h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max
+    print(h5_data.shape, h5_data.data.shape)
+    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
+    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
+    print(h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max)
     # test read FLD data
     del h5_data
     h5_data = read_hdf('/u/home/h/hwen/scratch/mira/e1-003384.h5')
-    print h5_data.shape, h5_data.data.shape
-    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
-    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
+    print(h5_data.shape, h5_data.data.shape)
+    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
+    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
     # test writing FLD data
     write_hdf(h5_data, '/u/home/h/hwen/scratch/test.h5')
     del h5_data
     h5_data = read_hdf('/u/home/h/hwen/scratch/test.h5')
-    print h5_data.shape, h5_data.data.shape
-    print h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max
-    print h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max
+    print(h5_data.shape, h5_data.data.shape)
+    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
+    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
 
 
 """

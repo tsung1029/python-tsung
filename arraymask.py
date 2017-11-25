@@ -62,6 +62,6 @@ def mask(arr, axes=None, region=None, symmetric=True):
 
 if __name__ == '__main__':
     data = np.ones((6, 8))
-    print data
+    print(data)
     da = mask(data, region=[('x2', 3, 5), ('x1', 1, 3)])  # ('x2', 0, 1),
-    print "applying mask...\n", data
+    print("applying mask...\n", data)

@@ -28,7 +28,7 @@ def update_rebin_axes(axisdata, fac, order='f'):
         factor = fac
     else:
         factor = fac[::-1]
-    for i in xrange(len(axisdata)):
+    for i in range(len(axisdata)):
         axisdata[i].increment *= factor[i]
         axisdata[i].axis_numberpoints /= factor[i]
     return axisdata
@@ -46,7 +46,7 @@ def rebin(a, fac):
     """
     shape = a.shape
     lenShape = len(shape)
-    newshape = np.divide(shape, np.asarray(fac))
+    newshape = np.floor_divide(shape, np.asarray(fac))
     evList = ['a.reshape('] + \
              ['newshape[%d],fac[%d],'%(i,i) for i in range(lenShape)] + \
              [')'] + ['.sum(%d)'%(i+1) for i in range(lenShape)] + \
@@ -70,7 +70,7 @@ def analysis(data_obj, ops_list, axesdata=None):
     else:
         data = data_obj
     for op in ops_list:
-        if isinstance(op, basestring):
+        if isinstance(op, str):
             op = str2keywords.str2keywords(op)
         if op == 'abs':
             data = np.abs(data)
@@ -130,4 +130,4 @@ if __name__ == '__main__':
     a = np.mgrid[:3, :3][0]
     # pass in list of keywords
     a = analysis(a, [kw])
-    print a
+    print(a)

@@ -8,10 +8,10 @@ from mpi4py import MPI
 
 
 def print_help():
-    print 'para_sum_dirs.py [options] <OutputDir> <InputDir1> <InputDir2> ...'
-    print 'options:'
-    print '  --sq: sum of squared values, default is naive sum'
-    print '  --abs: sum of absolute values, default is naive sum'
+    print('para_sum_dirs.py [options] <OutputDir> <InputDir1> <InputDir2> ...')
+    print('options:')
+    print('  --sq: sum of squared values, default is naive sum')
+    print('  --abs: sum of absolute values, default is naive sum')
 
 
 comm = MPI.COMM_WORLD
@@ -29,7 +29,7 @@ if len(args) < 2:
 outdir, indirs = args[0], args[1:]
 indirc = len(indirs)
 # do not overwirte data by accident!
-for i in xrange(indirc):
+for i in range(indirc):
     if os.path.realpath(outdir) == os.path.realpath(indirs[i]):
         sys.exit('InputDir and OutputDir cannot be the same!')
 if rank == 0:
@@ -51,15 +51,15 @@ for opt, arg in opts:
         sum_type = 'abs'
 # read file list only in head node
 if rank == 0:
-    fileList = [sorted(glob.glob(indirs[i] + '/*.h5')) for i in xrange(indirc)]
+    fileList = [sorted(glob.glob(indirs[i] + '/*.h5')) for i in range(indirc)]
 else:
     fileList = None
 fileList = comm.bcast(fileList, root=0)
 
 # divide the task
-fc = [len(fileList[i]) for i in xrange(indirc)]
+fc = [len(fileList[i]) for i in range(indirc)]
 total_time = min(fc)
-my_share = total_time / size
+my_share = total_time // size
 i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share
@@ -71,7 +71,7 @@ part = total_time / size
 # for all outputs at the same time
 def foreach_sum(file_num):
     tmp = 0
-    for i in xrange(indirc):
+    for i in range(indirc):
         h5data = read_hdf(fileList[i][file_num])
         if sum_type == 'sq':
             tmp += (h5data.data * h5data.data)
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     # pool.map(foreach_sum, time_i)
     # pool.close()
     # pool.join()
-    for time_i in xrange(i_begin, i_end):
+    for time_i in range(i_begin, i_end):
         foreach_sum(time_i)
 
 comm.barrier()

@@ -8,12 +8,12 @@ from mpi4py import MPI
 
 
 def print_help():
-    print 'para_sum.py [options] <InputDir> <OutputName>'
-    print 'options:'
-    print '  --sq: sum of squared values, default is naive sum'
-    print '  --abs: sum of absolute values, default is naive sum'
-    print '  -x: sum over x'
-    print '  -y: sum over y (default)'
+    print('para_sum.py [options] <InputDir> <OutputName>')
+    print('options:')
+    print('  --sq: sum of squared values, default is naive sum')
+    print('  --abs: sum of absolute values, default is naive sum')
+    print('  -x: sum over x')
+    print('  -y: sum over y (default)')
 
 
 comm = MPI.COMM_WORLD
@@ -45,13 +45,12 @@ for opt, arg in opts:
 
 fileList = sorted(glob.glob(dirName + '/*.h5'))
 total_time = len(fileList)
-my_share = total_time / size
+my_share = total_time // size
 i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share
 else:
     i_end = total_time
-part = total_time / size
 
 h5_filename = fileList[0]
 h5_data = read_hdf(h5_filename)
@@ -103,7 +102,7 @@ if rank == 0:
 
 # print 'before write'
 if rank == 0:
-    print 'yo, I am writing:   ' + outFilename
+    print('yo, I am writing:   ' + outFilename)
     write_hdf(h5_output, outFilename)
 
 # print 'after write'

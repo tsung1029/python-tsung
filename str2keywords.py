@@ -20,7 +20,7 @@ class str2keywords:
             string.pop(-1)
         # store keywords as dictionary
         self.keywords = dict(tuple(item.split('=')) for item in string)
-        for k, v in self.keywords.iteritems():
+        for k, v in self.keywords.items():
             self.keywords[k] = eval(v)
 
     def __eq__(self, other):
@@ -34,5 +34,5 @@ if __name__ == '__main__':
     if kw == 'fft':
         # use ** to unpack the dictionary
         a = np.fft.fft2(a, **kw.keywords)
-    print a
+    print(a)
 

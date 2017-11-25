@@ -90,7 +90,7 @@ def subrange(data_in, npts_start=None, npts_end=None, axesdata=None):
             ind = np.arange(xdim)
             pos = 0
             for i, xmax in enumerate(data_in.XMAX):
-                for j in xrange(pos, ndim):
+                for j in range(pos, ndim):
                     if xmax == axesdata[j].axis_max:
                         pos = j + 1
                         ind[i] = j
@@ -106,9 +106,9 @@ def subrange(data_in, npts_start=None, npts_end=None, axesdata=None):
                 data = data[npts_start[0]:npts_end[0], npts_start[1]:npts_end[1],
                             npts_start[2]:npts_end[2], npts_start[3]:npts_end[3]]
         else:
-            print "illegal subrange, do nothing."
+            print("illegal subrange, do nothing.")
         if axesdata:
-            for di in xrange(ndim):
+            for di in range(ndim):
                 axesdata[di].axis_min += axesdata[di].increment * npts_start[di]
                 axesdata[di].axis_numberpoints = npts_end[di] - npts_start[di]
                 axesdata[di].axis_max = (axesdata[di].increment * axesdata[di].axis_numberpoints +
@@ -141,7 +141,7 @@ def adjust(data_obj, ops_list):
     if not isinstance(data_obj, hdf_data):
         raise TypeError('Expecting hdf_data')
     for op in ops_list:
-        if isinstance(op, basestring):
+        if isinstance(op, str):
             op = str2keywords.str2keywords(op)
         if op == 'subrange':
             data_obj = subrange(data_obj, **op.keywords)

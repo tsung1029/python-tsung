@@ -14,15 +14,15 @@ from mpi4py import MPI
 
 
 def print_help():
-    print 'para_pha_f_slope.py [options] <InputDir> <OutputDir>'
-    print 'options:'
-    print '  --dfdp: calculate df/dp instead of (df/dp)/(-p*f)'
-    print '  --dim={1|2|3}: finite difference in which dimension'
-    print '  --rebin=[binx, biny, ...]: array_like, number of bins along each dimension'
-    print '  --adjust=string: adjust the data before rebinning. ' \
-          '         String will be convert to str2keywords object and call functions in adjust.py'
-    print '  --mininp=[pmin, pmax]: find mimimum value between pmin and pmax'
-    print '  --uth=uth: themal velocity normalized to speed of light. 1.0 by default'
+    print('para_pha_f_slope.py [options] <InputDir> <OutputDir>')
+    print('options:')
+    print('  --dfdp: calculate df/dp instead of (df/dp)/(-p*f)')
+    print('  --dim={1|2|3}: finite difference in which dimension')
+    print('  --rebin=[binx, biny, ...]: array_like, number of bins along each dimension')
+    print('  --adjust=string: adjust the data before rebinning. ' \
+          '         String will be convert to str2keywords object and call functions in adjust.py')
+    print('  --mininp=[pmin, pmax]: find mimimum value between pmin and pmax')
+    print('  --uth=uth: themal velocity normalized to speed of light. 1.0 by default')
 
 
 comm = MPI.COMM_WORLD
@@ -69,7 +69,7 @@ for opt, arg in opts:
     elif opt == '--uth':
         uth = float(eval(arg))
     else:
-        print print_help()
+        print(print_help())
         sys.exit(2)
 
 inddir = 'inddir/'
@@ -85,13 +85,12 @@ flst = comm.bcast(flst, root=0)
 
 # # divide the task
 total_time = len(flst)
-my_share = total_time / size
+my_share = total_time // size
 i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share
 else:
     i_end = total_time
-part = total_time / size
 
 # # READ ONE FILE, FIGURE OUT THE AXES INFORMATION AND SET COMMON PARAMETERS
 h5_filename = flst[i_begin]
@@ -105,11 +104,11 @@ if adjust_ops == 'subrange':
 # determine which dimension to differentiate
 if not pdim:
     for pdim, ax in enumerate(h5_output.axes):
-        if 'p' in ax.attributes['NAME'][0].lower():
+        if b'p' in ax.attributes['NAME'][0].lower():
             break
     else:
         sys.exit('Cannot find velocity axis and no dim parameter specified. Exiting...')
-h5_output.NAME[0] += ' slope'
+h5_output.NAME[0] += b' slope'
 paxis = h5_output.axes[pdim].get_axis_points()
 paxis_number = h5_output.axes[pdim].axis_number
 if rebin:
