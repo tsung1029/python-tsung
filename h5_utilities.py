@@ -493,35 +493,6 @@ def init_colormap():
 
 init_colormap()
 
-if __name__ == "__main__":
-    # test reading PHA data
-    h5_data = read_hdf('/u/home/h/hwen/scratch/postdev/x2x1p1-electrons-000000.h5')
-    print(h5_data.shape, h5_data.data.shape)
-    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
-    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
-    print(h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max)
-    # test writing PHA data
-    write_hdf(h5_data, '/u/home/h/hwen/scratch/test.h5')
-    del h5_data
-    h5_data = read_hdf('/u/home/h/hwen/scratch/test.h5')
-    print(h5_data.shape, h5_data.data.shape)
-    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
-    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
-    print(h5_data.axes[2].axis_numberpoints, h5_data.axes[2].axis_number, h5_data.axes[2].axis_max)
-    # test read FLD data
-    del h5_data
-    h5_data = read_hdf('/u/home/h/hwen/scratch/mira/e1-003384.h5')
-    print(h5_data.shape, h5_data.data.shape)
-    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
-    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
-    # test writing FLD data
-    write_hdf(h5_data, '/u/home/h/hwen/scratch/test.h5')
-    del h5_data
-    h5_data = read_hdf('/u/home/h/hwen/scratch/test.h5')
-    print(h5_data.shape, h5_data.data.shape)
-    print(h5_data.axes[0].axis_numberpoints, h5_data.axes[0].axis_number, h5_data.axes[0].axis_max)
-    print(h5_data.axes[1].axis_numberpoints, h5_data.axes[1].axis_number, h5_data.axes[1].axis_max)
-
 
 """
         
