@@ -6,6 +6,18 @@ import copy
 # from pylab import *
 import os
 
+def fourier_in_space(data_bundle):
+    # here we fourier analyze the data in space
+    k_data=np.fft.fft(data_bundle.data,axis=1)
+    k_data_2=np.fft.fft(k_data,axis=0)
+    data_bundle.data=np.log(np.abs(k_data_2)+0.00000000001)
+    dt=data_bundle.axes[0].axis_max/(data_bundle.shape[0]-1)
+    dx=data_bundle.axes[1].axis_max/data_bundle.shape[1]
+    data_bundle.axes[0].axis_max=2.0*3.1415926/dt
+    data_bundle.axes[1].axis_max=2.0*3.1415926/dx
+
+    return data_bundle
+
 
 def plotme(hdfdata, data=None):
     data_to_use = hdfdata.data
@@ -40,9 +52,6 @@ def math_string(input_str):
     except:
         pass
         input_str = str(input_str)
-    v = input_str.replace('\\\\', '\\')
-    v = r"$" + v + "$"
-    # print v
     return v
 
 
