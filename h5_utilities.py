@@ -333,8 +333,8 @@ if __name__=="__main__":
 
 def write_hdf(data, filename, dataset_name = None, write_data = True):
 
-        if(os.path.isfile(filename)):
-            os.remove(filename)
+	if(os.path.isfile(filename)):
+		os.remove(filename)
 	try:
 		dim = len(data.axes)
 		data_object = data
