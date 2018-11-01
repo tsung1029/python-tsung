@@ -7,8 +7,8 @@ import numpy
 
 argc=len(sys.argv)
 if(argc < 3):
-	print('Usage: python 1d_combine.py DIRNAME OUTNAME')
-	sys.exit()
+    print('Usage: python 1d_combine.py DIRNAME OUTNAME')
+    sys.exit()
 
 dirname=sys.argv[1]
 outfilename = sys.argv[2]
