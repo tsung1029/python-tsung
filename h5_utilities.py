@@ -11,6 +11,7 @@ def fourier_in_space(data_bundle):
     k_data=np.fft.fft(data_bundle.data,axis=1)
     k_data_2=np.fft.fft(k_data,axis=0)
     data_bundle.data=np.log(np.abs(k_data_2)+0.00000000001)
+
     dt=data_bundle.axes[0].axis_max/(data_bundle.shape[0]-1)
     dx=data_bundle.axes[1].axis_max/data_bundle.shape[1]
     data_bundle.axes[0].axis_max=2.0*3.1415926/dt
@@ -481,6 +482,7 @@ idl_13_b = [0, 3, 7, 10, 14, 19, 23, 28, 32, 38, 43, 48, 53, 59, 63, 68, 72, 77,
             0, 0, 0, 0]
 
 
+
 def init_colormap():
     rgb = []
     for i in range(0, len(idl_13_r)):
@@ -528,4 +530,5 @@ init_colormap()
             very large files that wont fit in memory, other options will have to be used that allow 'streaming' of the 
             input files.
                 
+
 """

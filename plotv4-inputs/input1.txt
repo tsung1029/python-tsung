@@ -1,0 +1,121 @@
+! basic input file for plotv4.py, this goes with the plotv4 in the Github repo.
+! it takes 3 folders, 
+
+simulation
+{
+    nstart =0,
+    ndump = 1,
+    nend = 100,
+    subplots = 3,
+    dpi=200,
+    !fig_size = 30,17, !20 in x 40 in
+    fig_size = 30,15,
+    fig_layout = 3,1, ! 3 x 1 subplots
+    sim_dir = '',
+    fontsize = 28,
+    fps = 10,
+    show_time = True,
+    save_dir = 'plots/',
+}
+
+data
+{
+   ! folders = 'osiris_update_killmenow/osiris/bin/MS/FLD/e2',
+    folders = 'OSIRIS_3_Quasi_3D/bin/MS/FLD/e2',
+    plot_type = 'slice',
+    !side = 'left', 'right',
+    !log_threshold = 1e-4,
+    suptitle = 'Laser',
+    !moving_window = True,
+    bounds = 'x2, 25,50',
+    !markers = '-b',
+    !minimum = -1e-1,
+    !maximum = 1,
+    !colormap = Blues_r,
+    !colormap = rainbow,
+
+}
+data
+{
+   ! folders = 'osiris_update_killmenow/osiris/bin/MS/FLD/e2',
+    folders = 'OSIRIS_3_Quasi_3D/bin/MS/DENSITY/electrons/charge/',
+    plot_type = 'slice',
+    !side = 'left', 'right',
+    !log_threshold = 1e-4,
+    minimum = -1,
+    maximum = 0,
+    suptitle = 'Plasma',
+    !moving_window = True,
+    !bounds = 'x2, 0,3','xi,0,10',
+    !markers = '-b',
+   ! minimum = -16,
+    !colormap = Blues_r,
+   ! colormap = rainbow,
+
+}
+data
+{
+   ! folders = 'osiris_update_killmenow/osiris/bin/MS/FLD/e2',
+    folders = 'OSIRIS_3_Quasi_3D/bin/MS/FLD/j2/',
+    plot_type = 'lineout,x1,199',
+    !side = 'left', 'right',
+    !log_threshold = 1e-4,
+    suptitle = 'j2',
+    !moving_window = True,
+    !bounds = 'x2, 0,3','xi,0,10',
+    !markers = '-b', 
+   ! minimum = -16,
+    !colormap = Blues_r,
+   ! colormap = rainbow,
+
+}
+data
+{
+    folders = 'osiris_killmev2/osiris/bin/MS/DENSITY/electrons/MODE-0-RE/charge_cyl_m/',
+    plot_type = 'slice',
+    !side = 'left', 'right',
+    !log_threshold = 1e-4,
+    suptitle = 'Plasma',
+    !bounds = 'x2, 0,3','xi,0,10',
+    !markers = '-b',
+    !moving_window = True,
+    minimum = -3e-3,
+    maximum = 0, 
+    colormap = Blues_r,
+
+}
+
+
+data
+{
+    folders = 'osiris_killmev2/osiris/bin/MS/DENSITY/N-5-7/MODE-0-RE/charge_cyl_m/',
+    plot_type = 'slice',
+    !side = 'left', 'right',
+    !log_threshold = 1e-4,
+    suptitle = 'Nitro',
+    !bounds = 'x2, 0,3','xi,0,10',
+    !markers = '-b',
+    !moving_window = True,
+    minimum = -1.2e-6,
+    colormap = Blues_r,
+
+}
+
+data
+{
+    folders = 'osiris_killmev2/osiris/bin/MS/RAW/N-5-7/',
+    plot_type = 'raw, xi,p1,1000',
+    bounds = 'xi, 300,330,' , 'p1, 0,120',
+    !leg_loc = 'right',
+    !side = 'left', 'right',
+    log_threshold = 1e-8,
+    !markers = '-b',
+    moving_window = True,
+    suptitle = 'Grid-based',
+    maximum = 1e-5,
+    !colormap = rainbow,
+
+}
+
+
+
