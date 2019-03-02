@@ -53,7 +53,7 @@ def math_string(input_str):
     except:
         pass
         input_str = str(input_str)
-    return v
+    return input_str
 
 
 class hdf_data:
@@ -308,7 +308,7 @@ def read_hdf(filename):
 def scan_hdf5_file_for_main_data_array(h5file):
     datasetName = ""
     for k, v in h5file.items():
-        if isinstance(v, h5py.highlevel.Dataset):
+        if isinstance(v, h5py.Dataset):
             datasetName = k
             break
     return h5file[datasetName]
