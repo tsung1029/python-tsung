@@ -1,6 +1,10 @@
 import sys
+
+# including my path and Han Wen's path
 sys.path.append('/Users/franktsung/Documents/codes/python-tsung/')
 sys.path.append('/Volumes/Lacie-5TB/codes/pyVisOS/')
+#
+
 
 import osh5io
 import osh5def
@@ -10,8 +14,14 @@ import osh5utils
 from h5_utilities import *
 import matplotlib.pyplot as plt
 import sys
-import getopt
-import glob
+# command line options (argc, argv stuff)
+import getopt 
+#
+
+# glob -> finding files in a directory
+import glob'
+#
+
 import numpy as np
 from mpi4py import MPI
 
@@ -56,8 +66,6 @@ for opt, arg in opts:
         print(print_help())
         sys.exit(2)
 
-
-avg_array=np.ones(n_avg)/n_avg
 e2 = sorted(glob.glob(dirName + '/MS/FLD/e2' + dir_ext + '/*.h5'))
 e3 = sorted(glob.glob(dirName + '/MS/FLD/e3' + dir_ext + '/*.h5'))
 b2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
@@ -101,8 +109,8 @@ taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
 
 data_attrs = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 's1', 'LONG_NAME': 'S_1' }
 
-# print(repr(xaxis.min))
-# print(repr(xaxis.max))
+print(repr(xaxis.min))
+print(repr(xaxis.max))
 run_attrs = {'XMAX' : np.array( [xaxis.max, time_step * (total_time-1)] ) , 
             'XMIN' : np.array( [xaxis.min, 0] ) }
 
@@ -110,23 +118,21 @@ run_attrs = {'XMAX' : np.array( [xaxis.max, time_step * (total_time-1)] ) ,
 # h5_output.run_attrs['UNITS'] = 'm_e /T'
 
 
-i_count = 0
+
 file_number = 0
 for file_number in range(i_begin, i_end):
     e2_filename = e2[file_number]
     e3_filename = e3[file_number]
     b2_filename = b2[file_number]
     b3_filename = b3[file_number]
-    if (i_count % 10 == 0 and rank == 0): 
-        print(e2_filename)
-    i_count = i_count+1
+    print(e2_filename)
     e2_data = osh5io.read_h5(e2_filename)
     e3_data = osh5io.read_h5(e3_filename)
     b2_data = osh5io.read_h5(b2_filename)
     b3_data = osh5io.read_h5(b3_filename)
     s1_data = e2_data * b3_data - e3_data * b2_data
-    # print(s1_data.shape)
-    h5_output[file_number, 1:nx] = np.convolve(s1_data[1:nx],avg_array,mode='same')
+    print(s1_data.shape)
+    h5_output[file_number, 1:nx] = s1_data[1:nx]
 #    temp = np.sum(s1_data, axis=0) / nx
 #    h5_output.data[file_number, 1:ny] = temp[1:ny]
 #    temp = np.sum(s1_data[0:n_avg, :], axis=0) / n_avg
