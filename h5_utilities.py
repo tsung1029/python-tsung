@@ -1,3 +1,6 @@
+# Version 2:  September 2019  --> migrating to the PyVisOS library
+#
+
 import matplotlib.pyplot as plt
 from matplotlib import cm, colors
 import numpy as np
@@ -6,16 +9,18 @@ import copy
 # from pylab import *
 import os
 
+
+
 def fourier_in_space(data_bundle):
     # here we fourier analyze the data in space
     k_data=np.fft.fft(data_bundle.data,axis=1)
     k_data_2=np.fft.fft(k_data,axis=0)
     data_bundle.data=np.log(np.abs(k_data_2)+0.00000000001)
 
-    dt=data_bundle.axes[0].axis_max/(data_bundle.shape[0]-1)
-    dx=data_bundle.axes[1].axis_max/data_bundle.shape[1]
-    data_bundle.axes[0].axis_max=2.0*3.1415926/dt
-    data_bundle.axes[1].axis_max=2.0*3.1415926/dx
+    dt=data_bundle.axes[0].max/(data_bundle.shape[0]-1)
+    dx=data_bundle.axes[1].max/data_bundle.shape[1]
+    data_bundle.axes[0].max=2.0*3.1415926/dt
+    data_bundle.axes[1].max=2.0*3.1415926/dx
 
     return data_bundle
 
@@ -227,215 +232,6 @@ class data_basic_axis:
         self.axis_min += n_pts_start * self.increment
         self.axis_max -= n_pts_end * self.increment
 
-
-
-def read_hdf(filename):
-    """
-    HDF reader for Osiris/Visxd compatable HDF files... This will slurp in the data
-    and the attributes that describe the data (e.g. title, units, scale). 
-    
-    Usage:
-            diag_data = read_hdf('e1-000006.h5')
-            
-            data = diag_data.data                         # gets the raw data
-            print diag_data.data.shape                    # prints the dimension of the raw data
-            print diag_data.run_attributes['TIME']        # prints the simulation time associated with the hdf5 file
-            diag_data.data_attributes['UNITS']             # print units of the dataset points
-            list(diag_data.data_attributes)             # lists all variables in 'data_attributes'
-            list(diag_data.run_attributes)                 # lists all vairables in 'run_attributes'
-            print diag_data.axes[0].attributes['UNITS']    # prints units of  X-axis
-            list(diag_data.axes[0].attributes['UNITS'])    # lists all variables of the X-axis
-            
-            diag_data.slice( x=34, y=(10,30) )
-            diag_data.slice(x=3)
-            
-            diag_data.write(diag_data, 'filename.h5')    # writes out Visxd compatiable HDF5 data.
-            
-    
-    (See bottom of file 'hdf.py' for more techincal information.)
-    
-    """
-
-    data_file1 = h5py.File(filename, 'r')
-
-    the_data_hdf_object = scan_hdf5_file_for_main_data_array(data_file1)
-    # dim = len(the_data_hdf_object.shape)
-
-    data_bundle = hdf_data()
-    data_bundle.filename = filename
-    data_bundle.dim = the_data_hdf_object.ndim
-    data_bundle.shape = the_data_hdf_object.shape
-
-    # now read in attributes of the ROOT of the hdf5.. t
-    #   there's lots of good info there.
-    for key, value in data_file1.attrs.items():
-        data_bundle.run_attributes[key] = value
-        setattr(data_bundle, str(key), value)
-
-    # attach attributes assigned to the data array to 
-    #    the hdf_data.data_attrs object
-    for key, value in the_data_hdf_object.attrs.items():
-        data_bundle.data_attributes[key] = value
-
-    axis_number = 1
-
-    while True:
-        try:
-            # try to open up another AXIS object in the HDF's attribute directory
-            #  (they are named /AXIS/AXIS1, /AXIS/AXIS2, /AXIS/AXIS3 ...)
-            axis_to_look_for = "/AXIS/AXIS" + str(axis_number)
-            axis = data_file1[axis_to_look_for]
-            axis_data = axis[:]
-            axis_min = axis_data.item(0)
-            axis_max = axis_data.item(1)
-            axis_numberpoints = the_data_hdf_object.shape[-axis_number]
-
-            data_axis = data_basic_axis(axis_number, axis_min, axis_max, axis_numberpoints)
-            data_bundle.axes.insert(0, data_axis)
-            # get the attributes for the JUST ADDED AXIS
-            for key, value in axis.attrs.items():
-                data_axis.attributes[key] = value
-        except:
-            break
-        axis_number += 1
-
-    data_bundle.data = the_data_hdf_object[()]
-
-    data_file1.close()
-    return data_bundle
-
-
-def scan_hdf5_file_for_main_data_array(h5file):
-    datasetName = ""
-    for k, v in h5file.items():
-        if isinstance(v, h5py.Dataset):
-            datasetName = k
-            break
-    return h5file[datasetName]
-
-
-
-# print h5_data.data_attributes
-#    print dir(h5_data.axes[0])
-#    print
-#    print dir(h5_data)
-
-
-def write_hdf(data, filename, dataset_name=None, write_data=True):
-    if (os.path.isfile(filename)):
-        os.remove(filename)
-    try:
-        dim = len(data.axes)
-        data_object = data
-        # if we get here, its prolly a 'hdf_data' object...
-        # thats what we want.. so stop and wait..
-        pass
-    except:
-        try:
-            # This is maybe a numpy array
-            type = data.dtype
-            data_object = hdf_data()
-            data_object.data = data
-
-        except:
-            try:
-                # maybe it's something we can wrap in a numpy array
-                data = np.array(data)
-                data_object = hdf_data()
-                data_object.data = data
-            except:
-                raise Exception(
-                    "Invalid data type.. we need a 'hdf5_data', numpy array, or somehitng that can go in a numy array")
-
-    # now let's make the hdf_data() compatible with VisXd and such...
-    # take care of the NAME attribute.
-    if dataset_name is not None:
-        current_NAME_attr = dataset_name
-    else:
-        try:
-            current_NAME_attr = data_object.run_attributes['NAME'][0]
-        except:
-            current_NAME_attr = "Data"
-
-    # now put the data in a group called this...
-
-    if filename is not None:
-        h5file = h5py.File(filename)
-        data_object.filename = filename
-    elif data_object.filename is not None:
-        h5file = h5py.File(filename)
-    else:
-        raise Exception("You did not specify a filename!!!")
-
-    # print current_NAME_attr
-    h5dataset = h5file.create_dataset(current_NAME_attr, data_object.data.shape, data=data_object.data)
-    # these are required.. so make defaults ones...
-    h5dataset.attrs['UNITS'] = ''
-    h5dataset.attrs['LONG_NAME'] = ''
-    # copy over any values we have in the 'hdf_data' object;'s
-    # print data_object.data_attributes
-    for key, value in data_object.data_attributes.items():
-        h5dataset.attrs[key] = value
-
-    # these are required so we make defaults..
-    h5file.attrs['DT'] = 1.0
-    h5file.attrs['ITER'] = 0
-    h5file.attrs['MOVE C'] = [0, 0, 0]
-    h5file.attrs['PERIODIC'] = [0, 0, 0]
-    h5file.attrs['TIME'] = 0.0
-    h5file.attrs['TIME UNITS'] = ''
-    h5file.attrs['TYPE'] = 'grid'
-    h5file.attrs['XMIN'] = [0.0, 0.0, 0.0]
-    h5file.attrs['XMAX'] = [1.0, 1.0, 1.0]
-    # now make defaults/copy over the attributes in the root of the hdf5
-    for key, value in data_object.run_attributes.items():
-        h5file.attrs[key] = value
-    # in order to fill in XMIN/XMAX, let's use the values we have in the axes objects.
-    xmin = [0.0, 0.0, 0.0]
-    xmax = [1.0, 1.0, 0.0]
-    # TODO: find out if x,y,z have semantic meaning or is it just the order of the axes in the list.
-    for i, axis in enumerate(data_object.axes):
-        xmin[i] = data_object.axes[i].axis_min
-        xmax[i] = data_object.axes[i].axis_max
-    h5file.attrs['XMIN'] = xmin
-    h5file.attrs['XMAX'] = xmax
-
-    # now create the axis objects....
-    # first see if the AXIS group (folder) exists..
-    if 'AXIS' not in h5file:
-        grp = h5file.create_group("AXIS")
-    # now go though the group and remove any extra AXISx arrays
-    number_axis_object_present = len(list(h5file['AXIS'].keys()))
-    number_axis_objects_we_need = len(data_object.axes)
-    for i in range(0, number_axis_object_present):
-        axis_name = "AXIS/AXIS%d" % (i + 1)
-        if axis_name in h5file:
-            if i < number_axis_objects_we_need:
-                pass
-            else:
-                del h5file[axis_name]
-    # now go through and set/create our axes HDF entries.
-    for i in range(0, number_axis_objects_we_need):
-        axis_name = "AXIS/AXIS%d" % (number_axis_objects_we_need - i)
-        if axis_name not in h5file:
-            axis_data = h5file.create_dataset(axis_name, (2,), 'float64')
-        else:
-            axis_data = h5file[axis_data]
-
-        # set the extent to the data we have...
-        axis_data[0] = data_object.axes[i].axis_min
-        axis_data[1] = data_object.axes[i].axis_max
-
-        # now make attributes for axis that are required..
-        axis_data.attrs['UNITS'] = ""
-        axis_data.attrs['LONG_NAME'] = ""
-        axis_data.attrs['TYPE'] = ""
-        axis_data.attrs['NAME'] = ""
-        # fill in any values we have storedd in the Axis object
-        for key, value in data_object.axes[i].attributes.items():
-            axis_data.attrs[key] = value
-    if write_data:
-        h5file.close()
 
 
 # ----------------------------------------------------------------------------------------------------------
