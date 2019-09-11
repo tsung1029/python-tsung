@@ -1,8 +1,8 @@
-!
-! extracting forward and backward components of e2.  suitable for 1D data
-!
-! FST, (c) 2019 Regents of The University of California
-!
+#
+# extracting forward and backward components of e2.  suitable for 1D data
+#
+# FST, (c) 2019 Regents of The University of California
+#
 
 import sys
 sys.path.append('/Users/franktsung/Documents/codes/python-tsung/')
@@ -58,7 +58,7 @@ for opt, arg in opts:
     elif opt == '--env':
         dir_ext = '-senv'
     elif opt == '-n':
-        density = arg
+        density = float(arg)
     else:
         print(print_help())
         sys.exit(2)
@@ -71,7 +71,7 @@ print( repr(index_of_refraction)+' , '+repr(v_phase) )
 
 
 
-avg_array=np.ones(n_avg)/n_avg
+
 e2 = sorted(glob.glob(dirName + '/FLD/e2' + dir_ext + '/*.h5'))
 e3 = sorted(glob.glob(dirName + '/FLD/e3' + dir_ext + '/*.h5'))
 b2 = sorted(glob.glob(dirName + '/FLD/b2' + dir_ext + '/*.h5'))
@@ -118,13 +118,10 @@ data_attrs_eplus = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 'e+', '
 
 data_attrs_eminus = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 'e-', 'LONG_NAME': 'e2_-' }
 
-# print(repr(xaxis.min))
-# print(repr(xaxis.max))
+
 run_attrs = {'XMAX' : np.array( [ time_step * (total_time-1),xaxis.max] ) , 
             'XMIN' : np.array( [0, xaxis.min, 0] ) }
 
-# h5_output.run_attrs['TIME'] = 0.0
-# h5_output.run_attrs['UNITS'] = 'm_e /T'
 
 
 i_count = 0
@@ -138,24 +135,17 @@ for file_number in range(i_begin, i_end):
         print(e2_filename)
     i_count = i_count+1
     e2_data = osh5io.read_h5(e2_filename)
-!    e3_data = osh5io.read_h5(e3_filename)
-!    b2_data = osh5io.read_h5(b2_filename)
+#    e3_data = osh5io.read_h5(e3_filename)
+#    b2_data = osh5io.read_h5(b2_filename)
     b3_data = osh5io.read_h5(b3_filename)
     e2_plus = (e2_data + v_phase * b3_data)/2.0
     e2_minus = (e2_data - v_phase * b3_data)/2.0
     
     # print(s1_data.shape)
-    e2_plus_output[file_number, 1:nx] = s1_data[1:nx]
-    e2_minus_output[file_number, 1:nx] e2_minus[1:nx]
+    e2_plus_output[file_number, 1:nx] = e2_plus[1:nx]
+    e2_minus_output[file_number, 1:nx] = e2_minus[1:nx]
 #    temp = np.sum(s1_data, axis=0) / nx
-#    h5_output.data[file_number, 1:ny] = temp[1:ny]
-#    temp = np.sum(s1_data[0:n_avg, :], axis=0) / n_avg
-#    income[file_number, 1:ny] = temp[1:ny]
-#    temp = np.sum(s1_data, axis=1) / ny
-#    h5_output2.data[file_number, 1:nx] = temp[1:nx]
-#    temp = np.sum(s1_data[:, 0:n_avg], axis=1) / n_avg
-#    income2[file_number, 1:nx] = temp[1:nx]
-    # file_number+=1
+
 
 # sum up the results to node 0 and output, 2 datasets, one for +
 # component abd one for the - component
@@ -164,6 +154,7 @@ comm.Reduce(e2_plus_output, total, op=MPI.SUM, root=0)
 if rank == 0:
     b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs_eplus,
         run_attrs=run_attrs, axes=[taxis,xaxis])
+    outFilename=outDir+'/'+'e2-plus.h5'
     osh5io.write_h5(b,filename=outFilename)
 
 # now let's do the - component
@@ -171,7 +162,7 @@ comm.Reduce(e2_minus_output, total, op=MPI.SUM, root=0)
 if rank == 0:
     b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs_eminus,
                      run_attrs=run_attrs, axes=[taxis,xaxis])
-    e2_plus_filename=
+    outFilename=outDir+'/'+'e2-minus.h5'
     osh5io.write_h5(b,filename=outFilename)
 #    write_hdf(h5_output, outFilename)
 print('Before barrier'+repr(rank))
