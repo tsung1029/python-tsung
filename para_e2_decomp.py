@@ -1,3 +1,9 @@
+!
+! extracting forward and backward components of e2.  suitable for 1D data
+!
+! FST, (c) 2019 Regents of The University of California
+!
+
 import sys
 sys.path.append('/Users/franktsung/Documents/codes/python-tsung/')
 sys.path.append('/Volumes/Lacie-5TB/codes/pyVisOS/')
@@ -17,7 +23,9 @@ from mpi4py import MPI
 
 
 def print_help():
-    print('para_poynt.py [options] <InputDir> <OutputName>')
+    print('python para_e2_decomp.py [options] <InputDir> <OutputDir>')
+    print('InputDir - Location of the MS folder')
+    print('OutputDir - Location of the output folder, makes 2 files for e2+ and e2-')
     print('options:')
     print('  -n: average over n grid points at entrance (32 by default)')
     print('  --avg: look into the -savg directory')
@@ -37,11 +45,10 @@ if len(args) < 2:
     print_help()
     sys.exit(2)
 dirName = args[0]
-outFilename = args[1]
+outDir = args[1]
 dir_ext = ''
-n_avg = 32
-sumdir = 1
-tags = ''
+density = 0.1
+
 for opt, arg in opts:
     if opt == '-h':
         print_help()
@@ -51,17 +58,24 @@ for opt, arg in opts:
     elif opt == '--env':
         dir_ext = '-senv'
     elif opt == '-n':
-        n_avg = arg
+        density = arg
     else:
         print(print_help())
         sys.exit(2)
 
+index_of_refraction = np.sqrt(1-density)
+
+v_phase = 1/index_of_refraction
+
+print( repr(index_of_refraction)+' , '+repr(v_phase) )
+
+
 
 avg_array=np.ones(n_avg)/n_avg
-e2 = sorted(glob.glob(dirName + '/MS/FLD/e2' + dir_ext + '/*.h5'))
-e3 = sorted(glob.glob(dirName + '/MS/FLD/e3' + dir_ext + '/*.h5'))
-b2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
-b3 = sorted(glob.glob(dirName + '/MS/FLD/b3' + dir_ext + '/*.h5'))
+e2 = sorted(glob.glob(dirName + '/FLD/e2' + dir_ext + '/*.h5'))
+e3 = sorted(glob.glob(dirName + '/FLD/e3' + dir_ext + '/*.h5'))
+b2 = sorted(glob.glob(dirName + '/FLD/b2' + dir_ext + '/*.h5'))
+b3 = sorted(glob.glob(dirName + '/FLD/b3' + dir_ext + '/*.h5'))
 total_time = len(e2)
 my_share = total_time // size
 i_begin = rank * my_share
@@ -87,7 +101,8 @@ print('nx=' + repr(nx))
 # print('ny=' + repr(ny))
 print('time_step=' + repr(time_step))
 print('total_time=' + repr(total_time))
-h5_output = np.zeros((total_time, nx))
+e2_plus_output = np.zeros((total_time, nx))
+e2_minus_output = np.zeros((total_time, nx))
 total = np.zeros((total_time,nx))
 
 #total = 0
@@ -99,7 +114,9 @@ xaxis=h5_data.axes[0]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
     attrs={'NAME':'t', 'LONG_NAME':'time', 'UNITS':'1 / \omega_p'})
 
-data_attrs = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 's1', 'LONG_NAME': 'S_1' }
+data_attrs_eplus = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 'e+', 'LONG_NAME': 'e2_+' }
+
+data_attrs_eminus = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 'e-', 'LONG_NAME': 'e2_-' }
 
 # print(repr(xaxis.min))
 # print(repr(xaxis.max))
@@ -121,12 +138,15 @@ for file_number in range(i_begin, i_end):
         print(e2_filename)
     i_count = i_count+1
     e2_data = osh5io.read_h5(e2_filename)
-    e3_data = osh5io.read_h5(e3_filename)
-    b2_data = osh5io.read_h5(b2_filename)
+!    e3_data = osh5io.read_h5(e3_filename)
+!    b2_data = osh5io.read_h5(b2_filename)
     b3_data = osh5io.read_h5(b3_filename)
-    s1_data = e2_data * b3_data - e3_data * b2_data
+    e2_plus = (e2_data + v_phase * b3_data)/2.0
+    e2_minus = (e2_data - v_phase * b3_data)/2.0
+    
     # print(s1_data.shape)
-    h5_output[file_number, 1:nx] = np.convolve(s1_data[1:nx],avg_array,mode='same')
+    e2_plus_output[file_number, 1:nx] = s1_data[1:nx]
+    e2_minus_output[file_number, 1:nx] e2_minus[1:nx]
 #    temp = np.sum(s1_data, axis=0) / nx
 #    h5_output.data[file_number, 1:ny] = temp[1:ny]
 #    temp = np.sum(s1_data[0:n_avg, :], axis=0) / n_avg
@@ -137,10 +157,21 @@ for file_number in range(i_begin, i_end):
 #    income2[file_number, 1:nx] = temp[1:nx]
     # file_number+=1
 
-comm.Reduce(h5_output, total, op=MPI.SUM, root=0)
+# sum up the results to node 0 and output, 2 datasets, one for +
+# component abd one for the - component
+# first let's do the + root
+comm.Reduce(e2_plus_output, total, op=MPI.SUM, root=0)
 if rank == 0:
-    b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs, 
+    b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs_eplus,
         run_attrs=run_attrs, axes=[taxis,xaxis])
+    osh5io.write_h5(b,filename=outFilename)
+
+# now let's do the - component
+comm.Reduce(e2_minus_output, total, op=MPI.SUM, root=0)
+if rank == 0:
+    b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs_eminus,
+                     run_attrs=run_attrs, axes=[taxis,xaxis])
+    e2_plus_filename=
     osh5io.write_h5(b,filename=outFilename)
 #    write_hdf(h5_output, outFilename)
 print('Before barrier'+repr(rank))
