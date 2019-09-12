@@ -58,10 +58,10 @@ for opt, arg in opts:
 
 
 avg_array=np.ones(n_avg)/n_avg
-e2 = sorted(glob.glob(dirName + '/MS/FLD/e2' + dir_ext + '/*.h5'))
-e3 = sorted(glob.glob(dirName + '/MS/FLD/e3' + dir_ext + '/*.h5'))
-b2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
-b3 = sorted(glob.glob(dirName + '/MS/FLD/b3' + dir_ext + '/*.h5'))
+e2 = sorted(glob.glob(dirName + '/FLD/e2' + dir_ext + '/*.h5'))
+e3 = sorted(glob.glob(dirName + '/FLD/e3' + dir_ext + '/*.h5'))
+b2 = sorted(glob.glob(dirName + '/FLD/b2' + dir_ext + '/*.h5'))
+b3 = sorted(glob.glob(dirName + '/FLD/b3' + dir_ext + '/*.h5'))
 total_time = len(e2)
 my_share = total_time // size
 i_begin = rank * my_share

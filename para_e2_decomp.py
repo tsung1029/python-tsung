@@ -114,9 +114,9 @@ xaxis=h5_data.axes[0]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
     attrs={'NAME':'t', 'LONG_NAME':'time', 'UNITS':'1 / \omega_p'})
 
-data_attrs_eplus = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 'e+', 'LONG_NAME': 'e2_+' }
+data_attrs_eplus = { 'UNITS': osh5def.OSUnits('m_e^2 c \omega_p/e'), 'NAME': 'e+', 'LONG_NAME': 'e2_+' }
 
-data_attrs_eminus = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 'e-', 'LONG_NAME': 'e2_-' }
+data_attrs_eminus = { 'UNITS': osh5def.OSUnits('m_e^2 c \omega_p/e'), 'NAME': 'e-', 'LONG_NAME': 'e2_-' }
 
 
 run_attrs = {'XMAX' : np.array( [ time_step * (total_time-1),xaxis.max] ) , 
