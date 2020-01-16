@@ -29,7 +29,7 @@ rank = comm.Get_rank()
 size = comm.Get_size()
 argc=len(sys.argv)
 if(argc < 3):
-    print('Usage: python 1d_combine.py DIRNAME OUTNAME')
+    print('Usage: python para_combine_2d.py DIRNAME OUTNAME')
     sys.exit()
 
 dirname=sys.argv[1]

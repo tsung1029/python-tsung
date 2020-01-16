@@ -64,6 +64,11 @@ def cmult(tev,ionefour,lnmic,lambdamic):
     result=18.4*(ionefour*lambdamic**2)*(lnmic/lambdamic)/tev
     return result
 
+def cmult_srs(ionefour,lnmic,lambdamic):
+    result=(ionefour**0.75*lambdamic**0.5)*(lnmic)/155.0
+    return result
+
+
 
 def gamma_real(eta,tev,ionefour,lnmic,lambdamic,state):
 
