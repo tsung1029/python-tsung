@@ -50,16 +50,16 @@ h5_data=osh5io.read_h5(h5_filename)
 array_dims=h5_data.shape
 nx=array_dims[0]
 # ny=array_dims[1]
-time_step=h5_data.run_attributes['TIME'][0]
+time_step=h5_data.run_attrs['TIME'][0]
 h5_output=hdf_data()
 h5_output.shape=[total_time,nx]
 print('nx='+repr(nx))
 print('time_step='+repr(time_step))
 print('total_time='+repr(total_time))
 
-h5_output.data=numpy.zeros((total_time,nx))
+h5_output.data=np.zeros((total_time,nx))
 if (rank == 0):
-  sum=numpy.zeros((total_time,nx))
+  sum=np.zeros((total_time,nx))
 h5_output.axes=[data_basic_axis(0,h5_data.axes[0].axis_min,h5_data.axes[0].axis_max,ny),
 data_basic_axis(1,0.0,(time_step*total_time-1),total_time)]
 
@@ -75,7 +75,7 @@ for file_number in range(i_begin,i_end):
   if (i_count % 10 == 0 and rank == 0):
       print(h5_filename)
   h5_data=osh5io.read_h5(h5_filename)
-  temp=numpy.sum(numpy.abs(h5_data.data),axis=0)/nx
+  temp=np.sum(np.abs(h5_data.data),axis=0)/nx
   h5_output[file_number,1:nx]=temp[1:nx]
   # file_number+=1
 

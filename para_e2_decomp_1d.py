@@ -27,7 +27,7 @@ def print_help():
     print('InputDir - Location of the MS folder')
     print('OutputDir - Location of the output folder, makes 2 files for e2+ and e2-')
     print('options:')
-    print('  -n: average over n grid points at entrance (32 by default)')
+    print('  -n: plasma density (needed to calculate epsilon)')
     print('  --avg: look into the -savg directory')
     print('  --env: look into the -senv directory')
 
@@ -110,7 +110,7 @@ total2 = 0
 # if rank == 0:
 #    total = np.zeros((total_time, nx))
 
-xaxis=h5_data.axes[0]
+xaxis=h5_data.axes[1]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
     attrs={'NAME':'t', 'LONG_NAME':'time', 'UNITS':'1 / \omega_p'})
 
@@ -142,8 +142,8 @@ for file_number in range(i_begin, i_end):
     e2_minus = (e2_data - v_phase * b3_data)/2.0
     
     # print(s1_data.shape)
-    e2_plus_output[file_number, 1:nx] = e2_plus[1:nx]
-    e2_minus_output[file_number, 1:nx] = e2_minus[1:nx]
+    e2_plus_output[file_number, 1:ny] = e2_plus[1:ny]
+    e2_minus_output[file_number, 1:ny] = e2_minus[1:ny]
 #    temp = np.sum(s1_data, axis=0) / nx
 
 
