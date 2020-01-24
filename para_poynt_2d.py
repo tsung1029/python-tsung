@@ -82,7 +82,7 @@ if rank < (size - 1):
 else:
     i_end = total_time
 part = total_time / size
-
+avg_array=np.ones(n_avg)/n_avg
 #
 # read the second file to get the time-step
 #
@@ -124,22 +124,25 @@ run_attrs = {'XMAX' : np.array( [time_step * (total_time-1), xaxis.max] ) ,
 
 
 file_number = 0
-skip = 10
+skip = 1
 for file_number in range(i_begin, i_end,skip):
     e2_filename = e2[file_number]
     e3_filename = e3[file_number]
     b2_filename = b2[file_number]
     b3_filename = b3[file_number]
-    print(e2_filename)
+    if( file_number % 10 == 0):
+        print(e2_filename)
     e2_data = osh5io.read_h5(e2_filename)
     e3_data = osh5io.read_h5(e3_filename)
     b2_data = osh5io.read_h5(b2_filename)
     b3_data = osh5io.read_h5(b3_filename)
     s1_data = e2_data * b3_data - e3_data * b2_data
-    print(s1_data.shape)
+    #if(file_number % 10 == 0):
+        #print(s1_data.shape)
     temp=np.sum(s1_data,axis=0) / nx
-    print(temp.shape)
-    h5_output[file_number, 1:ny] = np.abs(temp[1:ny])
+    # print(temp.shape)
+    h5_output[file_number, 1:ny] = np.abs(np.convolve(temp[1:ny],avg_array,mode='same'))
+    # h5_output[file_number, 1:nx] = np.convolve(s1_data[1:nx],avg_array,mode='same')
 #    temp = np.sum(s1_data, axis=0) / nx
 #    h5_output.data[file_number, 1:ny] = temp[1:ny]
 #    temp = np.sum(s1_data[0:n_avg, :], axis=0) / n_avg

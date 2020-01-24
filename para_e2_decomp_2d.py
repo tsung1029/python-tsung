@@ -23,7 +23,7 @@ from mpi4py import MPI
 
 
 def print_help():
-    print('python para_e2_decomp.py [options] <InputDir> <OutputDir>')
+    print('python para_e2_decomp_2d.py [options] <InputDir> <OutputDir>')
     print('InputDir - Location of the MS folder')
     print('OutputDir - Location of the output folder, makes 2 files for e2+ and e2-')
     print('options:')
@@ -92,23 +92,23 @@ h5_filename = e2[1]
 h5_data = osh5io.read_h5(h5_filename)
 array_dims = h5_data.shape
 nx = array_dims[0]
-# ny = array_dims[1]
+ny = array_dims[1]
 
 time_step = h5_data.run_attrs['TIME'][0]
 # h5_output = hdf_data()
 # h5_output.shape = [total_time, nx]
 print('nx=' + repr(nx))
-# print('ny=' + repr(ny))
+print('ny=' + repr(ny))
 print('time_step=' + repr(time_step))
 print('total_time=' + repr(total_time))
-e2_plus_output = np.zeros((total_time, nx))
-e2_minus_output = np.zeros((total_time, nx))
-total = np.zeros((total_time,nx))
+e2_plus_output = np.zeros((total_time, ny))
+e2_minus_output = np.zeros((total_time, ny))
+total = np.zeros((total_time,ny))
 
 #total = 0
 total2 = 0
 # if rank == 0:
-#    total = np.zeros((total_time, nx))
+#    total = np.zeros((total_time, ny))
 
 xaxis=h5_data.axes[1]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
@@ -138,10 +138,9 @@ for file_number in range(i_begin, i_end):
 #    e3_data = osh5io.read_h5(e3_filename)
 #    b2_data = osh5io.read_h5(b2_filename)
     b3_data = osh5io.read_h5(b3_filename)
-    e2_plus = (e2_data + v_phase * b3_data)/2.0
-    e2_minus = (e2_data - v_phase * b3_data)/2.0
-    
-    # print(s1_data.shape)
+    e2_plus = (np.sum(e2_data,axis=0) + v_phase * np.sum(b3_data,axis=0))/(2.0*nx)
+    e2_minus = (np.sum(e2_data,axis=0) - v_phase * np.sum(b3_data,axis=0))/(2.0*nx)
+    print(e2_plus.shape)
     e2_plus_output[file_number, 1:ny] = e2_plus[1:ny]
     e2_minus_output[file_number, 1:ny] = e2_minus[1:ny]
 #    temp = np.sum(s1_data, axis=0) / nx
