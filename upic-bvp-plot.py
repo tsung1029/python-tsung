@@ -63,7 +63,7 @@ def something_2(rundir,file_no):
     output_prefix='frame_'
         
         
-    fig = plt.figure(figsize=(10,4) )
+    fig = plt.figure(figsize=(10,8) )
 
         
     phase_space_filename=dir_0+quan_0_prefix+repr(file_no).zfill(6)+'.h5'
@@ -75,13 +75,39 @@ def something_2(rundir,file_no):
     phase_space_data = osh5io.read_h5(phase_space_filename)
     e1_data = np.average(osh5io.read_h5(e1_filename),axis=0)
         
-    p1_x1_plot = plt.subplot(121)
+    p1_x1_plot = plt.subplot(221)
     osh5vis.osplot(np.log(np.abs(phase_space_data)+1e-10),title='Phase Space',vmax=10,vmin=-2,cmap='Blues')
         
-    e1_plot = plt.subplot(122)
+    e1_plot = plt.subplot(222)
     osh5vis.osplot(e1_data,title='Electric Field')
     e1_plot.set_ylim([-0.1,0.1])
     plt.tight_layout()
+    fv_plot = plt.subplot(223)
+        
+        
+    # print(hdf5_data)
+    xmin=phase_space_data.axes[0].min
+    xmax=phase_space_data.axes[0].max
+
+    ymin=phase_space_data.axes[1].min
+    ymax=phase_space_data.axes[1].max
+
+# dx=(xmax-xmin)/float(nx[0]-1)
+# dy=(ymax-ymin)/float(nx[1]-1)
+# print(dx)
+# print(dy)
+# xmax=xmax-dx
+# ymax=ymax-dy
+# xmin=xmin+10.0*dx
+# ymin=ymin-10.0*dy
+# print(repr(xmin)+' '+repr(xmax)+' '+repr(ymin)+' '+repr(ymax))
+    nx=phase_space_data.shape
+    xaxis=np.linspace(xmin,xmax,num=nx[0])
+    yaxis=np.linspace(ymin,ymax,num=nx[1])
+    plt.plot(xaxis,np.average(phase_space_data,axis=1))
+    plt.xlabel('$v/v_{th}$')
+    plt.ylabel('f(v) [a.u]')
+    fv_plot.set_ylim([0, 1500])
     plt.savefig(output_filename)
     # plt.show()
          

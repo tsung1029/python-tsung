@@ -22,9 +22,9 @@ total_time=len(filelist)
 my_share = total_time // size
 i_begin=rank*my_share
 if (rank < (size -1)):
-  i_end = (rank+1)*my_share -1
+  i_end = (rank+1)*my_share
 else:
-  i_end = total_time - 1
+  i_end = total_time 
 part= total_time/size
 
 h5_filename=filelist[1]
