@@ -80,7 +80,7 @@ i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share
 else:
-    i_end = total_time
+    i_end = total_time -1
 part = total_time / size
 avg_array=np.ones(n_avg)/n_avg
 #
@@ -130,7 +130,7 @@ for file_number in range(i_begin, i_end,skip):
     e3_filename = e3[file_number]
     b2_filename = b2[file_number]
     b3_filename = b3[file_number]
-    if( file_number % 10 == 0):
+    if( rank == 0 and file_number % 10 == 0):
         print(e2_filename)
     e2_data = osh5io.read_h5(e2_filename)
     e3_data = osh5io.read_h5(e3_filename)
@@ -140,7 +140,7 @@ for file_number in range(i_begin, i_end,skip):
     #if(file_number % 10 == 0):
         #print(s1_data.shape)
     temp=np.sum(s1_data,axis=0) / nx
-    # print(temp.shape)
+    print(temp.shape)
     h5_output[file_number, 1:ny] = np.abs(np.convolve(temp[1:ny],avg_array,mode='same'))
     # h5_output[file_number, 1:nx] = np.convolve(s1_data[1:nx],avg_array,mode='same')
 #    temp = np.sum(s1_data, axis=0) / nx

@@ -37,6 +37,7 @@ def print_help():
    
 #2345
 import os
+import errno
 
 # *******************************************************************************
 # this is the subroutine pulled from the Jupyter notebook, replace the plotting
@@ -54,6 +55,12 @@ def something_2(rundir,file_no):
     dir_1=rundir+'/Ex/'
     
     output_dir = rundir +'/movies/'    
+    try:
+        os.mkdir(output_dir)
+    except OSError as exc:
+        if exc.errno != errno.EEXIST:
+            raise
+        pass
         
         
 
@@ -108,6 +115,37 @@ def something_2(rundir,file_no):
     plt.xlabel('$v/v_{th}$')
     plt.ylabel('f(v) [a.u]')
     fv_plot.set_ylim([0, 1500])
+
+
+    fv_slices = plt.subplot(224)
+        
+        
+    # print(hdf5_data)
+    xmin=phase_space_data.axes[0].min
+    xmax=phase_space_data.axes[0].max
+
+    ymin=phase_space_data.axes[1].min
+    ymax=phase_space_data.axes[1].max
+
+# dx=(xmax-xmin)/float(nx[0]-1)
+# dy=(ymax-ymin)/float(nx[1]-1)
+# print(dx)
+# print(dy)
+# xmax=xmax-dx
+# ymax=ymax-dy
+# xmin=xmin+10.0*dx
+# ymin=ymin-10.0*dy
+# print(repr(xmin)+' '+repr(xmax)+' '+repr(ymin)+' '+repr(ymax))
+    nx=phase_space_data.shape
+    xaxis=np.linspace(xmin,xmax,num=nx[0])
+    yaxis=np.linspace(ymin,ymax,num=nx[1])
+    plt.plot(xaxis,np.average(phase_space_data[:,492:532],axis=1))
+    plt.plot(xaxis,np.average(phase_space_data[:,352:372],axis=1),'r')
+    plt.plot(xaxis,np.average(phase_space_data[:,652:672],axis=1),'g')
+    plt.xlabel('$v/v_{th}$')
+    plt.ylabel('f(v) [a.u]')
+    fv_slices.set_ylim([0, 1500])
+
     plt.savefig(output_filename)
     # plt.show()
          
