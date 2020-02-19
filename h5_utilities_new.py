@@ -377,3 +377,52 @@ def upic_bvp_2(rundir,*args,**kwpassthrough):
 
 # *******************************************************************
 # *******************************************************************
+def rwigner(data):
+    nx=data.shape[0]
+    nxh = ((nx+1) // 2)
+    temp=np.zeros((nx,nx))
+    wdata=np.zeros((nx,nxh))
+    # temp1d=np.zeros(nx)
+    dataplus=np.zeros(nx)
+    dataminus=np.zeros(nx)
+    temp[:,0]=data[:]
+    
+    for j in range(1,nx):
+        dataplus=np.roll(data,j)
+        dataminus=np.roll(data,-j)
+        temp[:,j] = dataplus[:] * dataminus[:]
+        
+    
+    for i in range(nx):
+        temp1d=np.fft.fft(temp[:,i])
+        wdata[i,:]=np.abs(temp1d[0:nxh])
+        
+    return wdata
+    
+    
+# *******************************************************************
+# *******************************************************************
+def os_rwigner(real_array,xaxis):
+
+    nx=real_array.shape
+    nxh=(nx[0]+1)/2
+    dx=(xaxis.max-xaxis.min)/nx
+    #
+    # the wigner transform is not FFT because it is roughly the FFT of the correlation
+    # so the k-range is a little different than those of the FFT, 
+    # hence the 0.5
+    #
+    kmax=0.5*(np.pi)/dx
+    dk=(0.5*np.pi)/xaxis.max
+    w_data= rwigner(real_array)
+
+    kaxis=osh5def.DataAxis(0,kmax,nxh,attrs={'NAME':'k','LONG_NAME':'wave number', 'UNITS': '\omega_0/c' })
+    data_attrs={'UNITS': '[a.u.]','NAME': '$W_{\phi}$', 'LONG_NAME': 'Wigner Transform' }
+    run_attrs = {'XMAX' : np.array( [xaxis.max, kmax] ) , 'XMIN' : np.array( [ xaxis.min, 0 ] ) }
+    os5data_wigner=osh5def.H5Data(w_data,timestamp='x', data_attrs=data_attrs, axes=[xaxis,kaxis])                 
+    return os5data_wigner 
+
+# *******************************************************************
+# *******************************************************************
+    
+
