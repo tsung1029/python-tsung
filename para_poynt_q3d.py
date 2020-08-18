@@ -159,7 +159,7 @@ total2 = 0
 #    total = np.zeros((total_time, nx))
 
 raxis=h5_data.axes[0]
-dr=(raxis.xmax-raxis.xmin)/ny
+dr=(raxis.max-raxis.min)/ny
 xaxis=h5_data.axes[1]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
     attrs={'NAME':'t', 'LONG_NAME':'time', 'UNITS':'1 / \omega_p'})
