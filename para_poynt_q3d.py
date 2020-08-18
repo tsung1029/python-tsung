@@ -216,7 +216,7 @@ for file_number in range(i_begin, i_end):
     for i_z in range(0,ny):
         temp[i_z] = 0.0
         for i_r in range(0,nx):
-            temp[i_z]=temp[i_z]+(i_r+0.5)*dr*s1_data[i_z,i_r]
+            temp[i_z]=temp[i_z]+(i_r+0.5)*dr*s1_data[i_r,i_z]
 
 
     # temp=np.sum(s1_data,axis=0) / nx
