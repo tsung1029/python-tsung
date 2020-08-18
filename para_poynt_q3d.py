@@ -191,7 +191,7 @@ for file_number in range(i_begin, i_end):
         b2_filename_im = filename_im(dirName,'b2',mode_number,file_index)
         b3_filename_im = filename_im(dirName,'b3',mode_number,file_index)
         if( rank == 0 and file_number % 10 == 0):
-            print(e2_filename)
+            print(e2_filename_re)
         e2_data_re = osh5io.read_h5(e2_filename_re)
         e3_data_re = osh5io.read_h5(e3_filename_re)
         b2_data_re = osh5io.read_h5(b2_filename_re)
