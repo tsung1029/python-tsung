@@ -42,7 +42,7 @@ def filename_re(rundir,plasma_field,mode,fileno):
     # print(plasma_field_path)
     return(plasma_field_path)
 
-def filename_im(rundir,plasma_field,mode):
+def filename_im(rundir,plasma_field,mode,fileno):
     plasma_field_path=rundir+'/FLD/MODE-{mode:1d}-IM/{plasma_field:s}_cyl_m/{plasma_field:s}_cyl_m-{mode:1d}-im-{fileno:06d}.h5'.format(plasma_field=plasma_field,mode=mode,fileno=fileno)
     # print(plasma_field_path)
     return(plasma_field_path)
