@@ -182,14 +182,14 @@ for file_number in range(i_begin, i_end):
     file_index=i_begin+file_number*file_interval
     for mode_number in range(0,n_modes):
 
-        e2_filename_re = filename_re(rundir,'e2',mode_number,file_index)
-        e3_filename_re = filename_re(rundir,'e3',mode_number,file_index)
-        b2_filename_re = filename_re(rundir,'b2',mode_number,file_index)
-        b3_filename_re = filename_re(rundir,'b3',mode_number,file_index)
-        e2_filename_im = filename_im(rundir,'e2',mode_number,file_index)
-        e3_filename_im = filename_im(rundir,'e3',mode_number,file_index)
-        b2_filename_im = filename_im(rundir,'b2',mode_number,file_index)
-        b3_filename_im = filename_im(rundir,'b3',mode_number,file_index)
+        e2_filename_re = filename_re(dirName,'e2',mode_number,file_index)
+        e3_filename_re = filename_re(dirName,'e3',mode_number,file_index)
+        b2_filename_re = filename_re(dirName,'b2',mode_number,file_index)
+        b3_filename_re = filename_re(dirName,'b3',mode_number,file_index)
+        e2_filename_im = filename_im(dirName,'e2',mode_number,file_index)
+        e3_filename_im = filename_im(dirName,'e3',mode_number,file_index)
+        b2_filename_im = filename_im(dirName,'b2',mode_number,file_index)
+        b3_filename_im = filename_im(dirName,'b3',mode_number,file_index)
         if( rank == 0 and file_number % 10 == 0):
             print(e2_filename)
         e2_data_re = osh5io.read_h5(e2_filename_re)
