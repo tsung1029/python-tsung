@@ -211,6 +211,8 @@ for file_number in range(i_begin, i_end):
         #print(s1_data.shape)
     # instead of the sum now integrates it as int (r * S(r))
     #
+    print(s1_data.shape)
+    print(dr)
     for i_z in range(0,ny):
         temp[i_z] = 0.0
         for i_r in range(0,nx):
