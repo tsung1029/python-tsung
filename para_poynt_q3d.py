@@ -180,8 +180,7 @@ file_number = 0
 skip = 1
 for file_number in range(i_begin, i_end):
     file_index=i_begin+file_number*file_interval
-    for mode_number in range(0,n_modes)
-    def filename_re(rundir,plasma_field,mode,fileno):
+    for mode_number in range(0,n_modes):
 
         e2_filename_re = filename_re(rundir,'e2',mode_number,file_index)
         e3_filename_re = filename_re(rundir,'e3',mode_number,file_index)
