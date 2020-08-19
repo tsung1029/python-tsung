@@ -125,7 +125,7 @@ i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share
 else:
-    i_end = total_time -1
+    i_end = total_time
 part = total_time / size
 avg_array=np.ones(n_avg)/n_avg
 #
@@ -181,7 +181,7 @@ skip = 1
 temp=np.zeros(ny)
 for file_number in range(i_begin, i_end):
     file_index=i_begin+file_number*file_interval
-    for mode_number in range(0,n_modes):
+    for mode_number in range(0,n_modes+1):
 
         e2_filename_re = filename_re(dirName,'e2',mode_number,file_index)
         e3_filename_re = filename_re(dirName,'e3',mode_number,file_index)
