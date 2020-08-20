@@ -164,7 +164,7 @@ xaxis=h5_data.axes[1]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
     attrs={'NAME':'t', 'LONG_NAME':'time', 'UNITS':'1 / \omega_p'})
 
-data_attrs = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 's1', 'LONG_NAME': 'S_1' }
+data_attrs = { 'UNITS': osh5def.OSUnits('m_e \omega_p^3'), 'NAME': 'Power', 'LONG_NAME': 'Trans. Int. Power' }
 
 print(repr(xaxis.min))
 print(repr(xaxis.max))
@@ -213,10 +213,11 @@ for file_number in range(i_begin, i_end):
     #
     print(s1_data.shape)
     print(dr)
+    int_const = 2*3.1415926*dr*dr
     for i_z in range(0,ny):
         temp[i_z] = 0.0
         for i_r in range(0,nx):
-            temp[i_z]=temp[i_z]+(i_r+0.5)*dr*s1_data[i_r,i_z]
+            temp[i_z]=temp[i_z]+int_const*(i_r+0.5)*s1_data[i_r,i_z]
 
 
     # temp=np.sum(s1_data,axis=0) / nx
