@@ -113,7 +113,7 @@ for opt, arg in opts:
 # e3 = sorted(glob.glob(dirName + '/MS/FLD/e3' + dir_ext + '/*.h5'))
 e2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
 # b3 = sorted(glob.glob(dirName + '/MS/FLD/b3' + dir_ext + '/*.h5'))
-start=e2[1].find('e2_cyl_m-0-re-')+15
+start=e2[1].find('b2_cyl_m-0-re-')+15
 end=e2[1].find('.')
 i_begin=int(e2[0][start:end])
 file_interval=int(e2[1][start:end])
