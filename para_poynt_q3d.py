@@ -109,9 +109,9 @@ for opt, arg in opts:
         print(print_help())
         sys.exit(2)
 
-e2 = sorted(glob.glob(dirname_re(dirName,'e2',0) + dir_ext + '/*.h5'))
+# e2 = sorted(glob.glob(dirname_re(dirName,'e2',0) + dir_ext + '/*.h5'))
 # e3 = sorted(glob.glob(dirName + '/MS/FLD/e3' + dir_ext + '/*.h5'))
-# b2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
+e2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
 # b3 = sorted(glob.glob(dirName + '/MS/FLD/b3' + dir_ext + '/*.h5'))
 start=e2[1].find('e2_cyl_m-0-re-')+15
 end=e2[1].find('.')
