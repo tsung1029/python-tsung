@@ -1,9 +1,9 @@
 import numpy
 import cmath
-mecgs=9.1094e-28
-qecgs=4.8032e-10
-ccgs=29979000000
-mypi=3.1415926
+mecgs = 9.1094e-28
+qecgs = 4.8032e-10
+ccgs = 29979000000
+mypi = 3.1415926
 
 def omegap(density):
     result=numpy.sqrt(4*mypi*qecgs*qecgs*density/mecgs)
@@ -109,3 +109,67 @@ def envelope_norm_rev(tau):
         result = 0.0
     return result
 
+def kplus_para(kperp):
+
+    epsoverfour= 0.75/4.0
+
+    return numpy.sqrt(kperp*kperp + epsoverfour) + numpy.sqrt(epsoverfour) 
+
+def kminus_para(kperp):
+
+    epsoverfour = 0.75/4.0
+
+    return numpy.sqrt(kperp*kperp + epsoverfour) - numpy.sqrt(epsoverfour)
+
+def kplus_sq(kperp):
+
+    epsoverfour = 0.75/4.0
+
+    kplus =  numpy.sqrt(kperp*kperp + epsoverfour) + numpy.sqrt(epsoverfour)
+
+    return kplus*kplus + kperp*kperp
+
+def kminus_sq(kperp):
+
+    epsoverfour = 0.75/4.0
+    kminus =  numpy.sqrt(kperp*kperp + epsoverfour) - numpy.sqrt(epsoverfour)
+
+    return kminus*kminus + kperp*kperp
+
+
+def density_match(kperp,tev):
+
+    mecgs = 9.1094e-28
+    qecgs = 4.8032e-10
+    ccgs = 29979000000
+    mypi = 3.1415926
+
+    ve=vth(tev)/ccgs
+
+    return (0.25 * (1+numpy.sqrt(1-12*ve*ve*(kplus_sq(kperp)+kminus_sq(kperp)))))**2.0
+
+
+def tpd_match_func(wp,eta,tev):
+
+    ve=vth(tev)/ccgs
+    # DEBUG
+    # print(ve)
+    # print(kplus_sq(eta))
+    # print(kminus_sq(eta))
+    # DEBUG
+    return numpy.sqrt(wp*wp+3*ve*ve*kplus_sq(eta)) + numpy.sqrt(wp*wp+3*ve*ve*kminus_sq(eta)) - 1.0
+
+
+
+def density_match_exact(kperp,tev):
+    from scipy import optimize
+
+    def test(wp):
+
+        return tpd_match_func(wp,kperp,tev)
+
+    test2=optimize.root_scalar(test,x0=0.50,x1=0.49,method='secant')
+    # DEBUG
+    # print(test2)
+    # DEBUG
+    return test2.root*test2.root
