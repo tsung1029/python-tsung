@@ -55,7 +55,7 @@ def quad_spline(x):
     return result
 
 def os_env(t):
-    result = 10*t**3 - 15*t**4 +6*t**5
+    result = (t < 1 ) * 10*t**3 - 15*t**4 +6*t**5
     return result
 
 def r_spline(k,order):
@@ -63,5 +63,12 @@ def r_spline(k,order):
     result = 1
     result = (2**(order+1)) * (abs(k)>=1e-6) *(np.sin(k*half)/k)**(order+1) + (np.abs(k)<1e-6) * 1.0
 
+    return result
+    
+
+def smooth(k,order):
+
+    result = 1.0
+    result = ((np.cos(k)+1)/2.0)**order
     return result
     
