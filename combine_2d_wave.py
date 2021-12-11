@@ -1,6 +1,10 @@
 
 #
-# Combine 1D data into 1 HDF5 file
+# Combine 2d data into 1 HDF file
+# this script is meant for quantities that 
+# are wave-like.  In this case we take advantage of Parseval's theorem
+# and sum the squares of the data.
+#
 #
 # FST, (c) 2019 Regents of The University of California
 #
@@ -25,7 +29,7 @@ import numpy as np
 
 argc=len(sys.argv)
 if(argc < 3):
-    print('Usage: python para_combine_2d.py DIRNAME OUTNAME')
+    print('Usage: python combine_2d_wave.py DIRNAME OUTNAME')
     sys.exit()
 
 dirname=sys.argv[1]
@@ -74,8 +78,8 @@ for file_number in range(i_begin,i_end):
       print(h5_filename)
   h5_data=osh5io.read_h5(h5_filename)
   h5_data = h5_data**2
-  temp=np.average((h5_data.data),axis=0)
-  temp=np.sqrt(temp)*2.0
+  temp=np.sum((h5_data.data),axis=0)  ! sum the squares of the data, store it below
+  # temp=np.sqrt(temp)
   h5_output[file_number,1:ny]=temp[1:ny]
   # file_number+=1
 

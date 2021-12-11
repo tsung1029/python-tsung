@@ -1,6 +1,13 @@
 # *************************************************************************
 #
 # Combine 2D data into 1 HDF5 file
+# for binned data
+#
+# ************************************************************************* 
+# usage python combine_2d_list.py DIRNAME OUT_ROOT
+# output = OUT_ROOT-xx.h5
+# *************************************************************************
+#
 # (ver 2.0 -- here we handle binned data)
 #
 # *************************************************************************
@@ -29,7 +36,7 @@ import numpy as np
 
 argc=len(sys.argv)
 if(argc < 3):
-    print('Usage: python para_combine_2d.py DIRNAME OUT_ROOT')
+    print('Usage: python combine_2d_list.py DIRNAME OUT_ROOT')
     sys.exit()
 
 dirname=sys.argv[1]
