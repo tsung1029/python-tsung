@@ -45,7 +45,7 @@ if len(args) < 2:
 dirName = args[0]
 outFilename = args[1]
 dir_ext = ''
-n_avg = 32
+n_avg = 50
 #
 # sumdir = 0 summing over the transverse direction
 sumdir = 0
@@ -116,6 +116,7 @@ run_attrs = {'XMAX' : np.array( [time_step * (total_time-1), xaxis.max] ) ,
 file_number = 0
 skip = 1
 for file_number in range(i_begin, i_end,skip):
+    print(file_number)
     e2_filename = e2[file_number]
     e3_filename = e3[file_number]
     b2_filename = b2[file_number]

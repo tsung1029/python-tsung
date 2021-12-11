@@ -1,0 +1,8 @@
+python poynt_2d.py /Volumes/d2scratch/tsung/hfhi-paper/5kev-c1-fixed/MS/ /Volumes/Lacie-5TB/work/hfhi-paper/5kev-c1-fixed-s1.h5
+python poynt_2d.py /Volumes/d2scratch/tsung/hfhi-paper/5kev-c1-rt1/MS/ /Volumes/Lacie-5TB/work/hfhi-paper/5kev-c1-rt1-s1.h5
+python poynt_2d.py /Volumes/d2scratch/tsung/hfhi-paper/5kev-c1-rt1-2/MS/ /Volumes/Lacie-5TB/work/hfhi-paper/5kev-c1-rt1-2-s1.h5
+python poynt_2d.py /Volumes/d2scratch/tsung/hfhi-paper/5kev-c2-rt1/MS/ /Volumes/Lacie-5TB/work/hfhi-paper/5kev-c2-rt1-s1.h5
+python poynt_2d.py /Volumes/d2scratch/tsung/hfhi-paper/5kev-c2-rt10/MS/ /Volumes/Lacie-5TB/work/hfhi-paper/5kev-c2-rt10-s1.h5
+python poynt_2d.py /Volumes/d2scratch/tsung/hfhi-paper/5kev-c2-rt10-2/MS/ /Volumes/Lacie-5TB/work/hfhi-paper/5kev-c2-rt10-2-s1.h5
+python poynt_2d.py /Volumes/d2scratch/tsung/hfhi-paper/5kev-c1-rt10/MS/ /Volumes/Lacie-5TB/work/hfhi-paper/5kev-c1-rt10-s1.h5
+
