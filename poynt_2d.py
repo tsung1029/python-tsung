@@ -29,6 +29,7 @@ def print_help():
     print('para_poynt.py [options] <InputDir> <OutputName>')
     print('options:')
     print('  -n: average over n grid points at entrance (32 by default)')
+    print('  -s: only process every S files')
     print('  --avg: look into the -savg directory')
     print('  --env: look into the -senv directory')
 
@@ -46,6 +47,8 @@ dirName = args[0]
 outFilename = args[1]
 dir_ext = ''
 n_avg = 50
+# default skip is 1
+skip = 1    
 #
 # sumdir = 0 summing over the transverse direction
 sumdir = 0
@@ -62,6 +65,8 @@ for opt, arg in opts:
         dir_ext = '-senv'
     elif opt == '-n':
         n_avg = arg
+    elif opt == '-s':
+        skip = arg
     else:
         print(print_help())
         sys.exit(2)
@@ -114,14 +119,13 @@ run_attrs = {'XMAX' : np.array( [time_step * (total_time-1), xaxis.max] ) ,
 
 
 file_number = 0
-skip = 1
+# skip = 10
 for file_number in range(i_begin, i_end,skip):
-    print(file_number)
+    # print(file_number)
     e2_filename = e2[file_number]
     e3_filename = e3[file_number]
     b2_filename = b2[file_number]
     b3_filename = b3[file_number]
-    print(e2_filename)
     e2_data = osh5io.read_h5(e2_filename)
     e3_data = osh5io.read_h5(e3_filename)
     b2_data = osh5io.read_h5(b2_filename)
@@ -130,7 +134,7 @@ for file_number in range(i_begin, i_end,skip):
     #if(file_number % 10 == 0):
         #print(s1_data.shape)
     temp=np.sum(s1_data,axis=0) / nx
-    print(temp.shape)
+    # print(temp.shape)
     h5_output[file_number, 1:ny] = np.abs(np.convolve(temp[1:ny],avg_array,mode='same'))
     # h5_output[file_number, 1:nx] = np.convolve(s1_data[1:nx],avg_array,mode='same')
 #    temp = np.sum(s1_data, axis=0) / nx
