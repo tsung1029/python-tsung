@@ -99,4 +99,4 @@ for i in range(list_length):
     b=osh5def.H5Data(h5_output[i,:,:], timestamp='x', data_attrs=data_attrs,run_attrs=run_attrs, axes=[taxis, xaxis])
     osh5io.write_h5(b,filename=list_filename)
 print('after write')
-print('Before barrier'+repr(rank))
+# print('Before barrier'+repr(rank))
