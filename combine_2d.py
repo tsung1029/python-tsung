@@ -1,6 +1,7 @@
 
 #
-# Combine 1D data into 1 HDF5 file
+# Combine 2D data into 1 HDF5 file
+# the data is averaged in the x2 direction
 #
 # FST, (c) 2019 Regents of The University of California
 #
@@ -25,7 +26,7 @@ import numpy as np
 
 argc=len(sys.argv)
 if(argc < 3):
-    print('Usage: python para_combine_2d.py DIRNAME OUTNAME')
+    print('Usage: python combine_2d.py DIRNAME OUTNAME')
     sys.exit()
 
 dirname=sys.argv[1]
