@@ -10,6 +10,7 @@ import osh5io
 import osh5def
 import osh5vis
 import osh5utils
+import mpi4py
 
 from h5_utilities import *
 import matplotlib.pyplot as plt
@@ -23,19 +24,27 @@ import glob
 #
 
 import numpy as np
-from mpi4py import MPI
 
 
 def print_help():
-    print('para_poynt.py [options] <InputDir> <OutputName>')
+    print('mpirun -n X python para_poynt.py [options] <InputDir> <OutputName>')
     print('options:')
     print('  -n: average over n grid points at entrance (32 by default)')
+    print('  -s: only process every S files')
     print('  --avg: look into the -savg directory')
     print('  --env: look into the -senv directory')
 
+# *****************************************************************************
+# *****************************************************************************
+# MPI initialization
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
+# *****************************************************************************
+# *****************************************************************************
+# *****************************************************************************
+
+
 argc = len(sys.argv)
 try:
     opts, args = getopt.gnu_getopt(sys.argv[1:], "hxyn:", ['avg', 'env'])
@@ -49,7 +58,9 @@ if len(args) < 2:
 dirName = args[0]
 outFilename = args[1]
 dir_ext = ''
-n_avg = 32
+n_avg = 50
+# default skip is 1
+skip = 1    
 #
 # sumdir = 0 summing over the transverse direction
 sumdir = 0
@@ -66,22 +77,27 @@ for opt, arg in opts:
         dir_ext = '-senv'
     elif opt == '-n':
         n_avg = arg
+    elif opt == '-s':
+        skip = arg
     else:
         print(print_help())
         sys.exit(2)
 
-e2 = sorted(glob.glob(dirName + '/MS/FLD/e2' + dir_ext + '/*.h5'))
-e3 = sorted(glob.glob(dirName + '/MS/FLD/e3' + dir_ext + '/*.h5'))
-b2 = sorted(glob.glob(dirName + '/MS/FLD/b2' + dir_ext + '/*.h5'))
-b3 = sorted(glob.glob(dirName + '/MS/FLD/b3' + dir_ext + '/*.h5'))
+e2 = sorted(glob.glob(dirName + '/FLD/e2' + dir_ext + '/*.h5'))
+e3 = sorted(glob.glob(dirName + '/FLD/e3' + dir_ext + '/*.h5'))
+b2 = sorted(glob.glob(dirName + '/FLD/b2' + dir_ext + '/*.h5'))
+b3 = sorted(glob.glob(dirName + '/FLD/b3' + dir_ext + '/*.h5'))
 total_time = len(e2)
-my_share = total_time // size
+
+
+my_share = total_time // size 
 i_begin = rank * my_share
 if rank < (size - 1):
     i_end = (rank + 1) * my_share
 else:
-    i_end = total_time -1
-part = total_time / size
+    i_end = total_time
+
+
 avg_array=np.ones(n_avg)/n_avg
 #
 # read the second file to get the time-step
@@ -99,13 +115,13 @@ print('nx=' + repr(nx))
 print('ny=' + repr(ny))
 print('time_step=' + repr(time_step))
 print('total_time=' + repr(total_time))
+
+# Here we initialize 2 variables
 h5_output = np.zeros((total_time, ny))
 total = np.zeros((total_time,ny))
 
 #total = 0
 total2 = 0
-# if rank == 0:
-#    total = np.zeros((total_time, nx))
 
 xaxis=h5_data.axes[1]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
@@ -124,14 +140,13 @@ run_attrs = {'XMAX' : np.array( [time_step * (total_time-1), xaxis.max] ) ,
 
 
 file_number = 0
-skip = 1
+# skip = 10
 for file_number in range(i_begin, i_end,skip):
+    # print(file_number)
     e2_filename = e2[file_number]
     e3_filename = e3[file_number]
     b2_filename = b2[file_number]
     b3_filename = b3[file_number]
-    if( rank == 0 and file_number % 10 == 0):
-        print(e2_filename)
     e2_data = osh5io.read_h5(e2_filename)
     e3_data = osh5io.read_h5(e3_filename)
     b2_data = osh5io.read_h5(b2_filename)
@@ -140,40 +155,14 @@ for file_number in range(i_begin, i_end,skip):
     #if(file_number % 10 == 0):
         #print(s1_data.shape)
     temp=np.sum(s1_data,axis=0) / nx
-    print(temp.shape)
+    # print(temp.shape)
     h5_output[file_number, 1:ny] = np.abs(np.convolve(temp[1:ny],avg_array,mode='same'))
-    # h5_output[file_number, 1:nx] = np.convolve(s1_data[1:nx],avg_array,mode='same')
-#    temp = np.sum(s1_data, axis=0) / nx
-#    h5_output.data[file_number, 1:ny] = temp[1:ny]
-#    temp = np.sum(s1_data[0:n_avg, :], axis=0) / n_avg
-#    income[file_number, 1:ny] = temp[1:ny]
-#    temp = np.sum(s1_data, axis=1) / ny
-#    h5_output2.data[file_number, 1:nx] = temp[1:nx]
-#    temp = np.sum(s1_data[:, 0:n_avg], axis=1) / n_avg
-#    income2[file_number, 1:nx] = temp[1:nx]
-    # file_number+=1
+
 
 comm.Reduce(h5_output, total, op=MPI.SUM, root=0)
 if rank == 0:
-    b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs, 
-        run_attrs=run_attrs, axes=[taxis, xaxis])
+    h5_output = total
+
+if rank == 0:
+    b=osh5def.H5Data(h5_output, timestamp='x', data_attrs=data_attrs,run_attrs=run_attrs, axes=[taxis, xaxis])
     osh5io.write_h5(b,filename=outFilename)
-#    write_hdf(h5_output, outFilename)
-print('Before barrier'+repr(rank))
-comm.barrier()
-# comm.Reduce(income, total, op=MPI.SUM, root=0)
-# if rank == 0:
-#     h5_output.data = total
-#     newName = outFilename.rsplit('.', 1)[0] + '-x-n' + str(n_avg) + '.h5'
-#     write_hdf(h5_output, newName)
-# comm.barrier()
-# comm.Reduce(h5_output2.data, total2, op=MPI.SUM, root=0)
-# if rank == 0:
-#     h5_output2.data = total2
-#     write_hdf(h5_output2, outFilename)
-# comm.barrier()
-# comm.Reduce(income2, total2, op=MPI.SUM, root=0)
-# if rank == 0:
-#     h5_output2.data = total2
-#     newName = outFilename.rsplit('.', 1)[0] + '-y-n' + str(n_avg) + '.h5'
-#     write_hdf(h5_output2, newName)
