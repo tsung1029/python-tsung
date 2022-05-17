@@ -23,9 +23,9 @@ from mpi4py import MPI
 
 
 def print_help():
-    print('python para_e2_decomp_2d.py [options] <InputDir> <OutputDir>')
+    print('python para_hfhi_growth.py [options] <InputDir> <OutputDir>')
     print('InputDir - Location of the MS folder')
-    print('OutputDir - Location of the output folder, makes 2 files for e2+ and e2-')
+    print('OutputDir - Location of the output folder')
     print('options:')
     print('  -n: plasma density (needed to calculate epsilon)')
     print('  --avg: look into the -savg directory')
