@@ -5,8 +5,12 @@
 #
 
 import sys
+# This is the path for Frank's Mac Pro
+#
 sys.path.append('/Users/franktsung/Documents/codes/python-tsung/')
 sys.path.append('/Volumes/Lacie-5TB/codes/pyVisOS/')
+#
+#
 
 import osh5io
 import osh5def
@@ -23,13 +27,14 @@ from mpi4py import MPI
 
 
 def print_help():
-    print('python para_hfhi_growth.py [options] <InputDir> <OutputDir>')
+    print('python para_hfhi_growth.py [options] <zmin> <zmax> <kmax> <InputDir> <OutputDir>')
+    print('zmin = minimum z value saved')
+    print('zmax = maximum z value saved')
+    print('kmax = maximum k_perp saved')
     print('InputDir - Location of the MS folder')
     print('OutputDir - Location of the output folder')
     print('options:')
-    print('  -n: plasma density (needed to calculate epsilon)')
-    print('  --avg: look into the -savg directory')
-    print('  --env: look into the -senv directory')
+    print(' None Implemented Yet')
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -44,10 +49,12 @@ except getopt.GetoptError:
 if len(args) < 2:
     print_help()
     sys.exit(2)
-dirName = args[0]
-outDir = args[1]
+zmin = args[0]
+zmax = args[1]
+kmax = args[2]
+dirName = args[3]
+outDir = args[4]
 dir_ext = ''
-density = 0.1
 
 for opt, arg in opts:
     if opt == '-h':
@@ -72,11 +79,12 @@ print( repr(index_of_refraction)+' , '+repr(v_phase) )
 
 
 
+e1 = sorted(glob.glob(dirName + '/FLD/e1' + dir_ext + '/*.h5'))
+
 e2 = sorted(glob.glob(dirName + '/FLD/e2' + dir_ext + '/*.h5'))
-e3 = sorted(glob.glob(dirName + '/FLD/e3' + dir_ext + '/*.h5'))
-b2 = sorted(glob.glob(dirName + '/FLD/b2' + dir_ext + '/*.h5'))
-b3 = sorted(glob.glob(dirName + '/FLD/b3' + dir_ext + '/*.h5'))
-total_time = len(e2)
+
+
+total_time = len(e1)
 my_share = total_time // size
 i_begin = rank * my_share
 if rank < (size - 1):
@@ -88,11 +96,17 @@ part = total_time / size
 #
 # read the second file to get the time-step
 #
-h5_filename = e2[1]  
+h5_filename = e1[1]  
 h5_data = osh5io.read_h5(h5_filename)
 array_dims = h5_data.shape
+
+# 
+# the array is transposed due to Fortran array ordering
 nx = array_dims[0]
 ny = array_dims[1]
+#
+#
+
 
 time_step = h5_data.run_attrs['TIME'][0]
 # h5_output = hdf_data()
@@ -101,48 +115,62 @@ print('nx=' + repr(nx))
 print('ny=' + repr(ny))
 print('time_step=' + repr(time_step))
 print('total_time=' + repr(total_time))
-e2_plus_output = np.zeros((total_time, ny))
-e2_minus_output = np.zeros((total_time, ny))
-total = np.zeros((total_time,ny))
 
-#total = 0
-total2 = 0
-# if rank == 0:
-#    total = np.zeros((total_time, ny))
 
-xaxis=h5_data.axes[1]
+
+# calculate the z-range
+dz=h5_data.axis[1][1]-h5_data.axis[1][0]
+nx_begin=int((zmin-h5_data.axis[1][0])/dz)
+nx_end=int((zmax-h5_data.axis[1][0])/dz)
+xaxis=h5_data.axes[1][nx_begin:nx_end]
+#
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
     attrs={'NAME':'t', 'LONG_NAME':'time', 'UNITS':'1 / \omega_p'})
+delta_k = 2*np.pi/(h5_data.axis[0].max-h5_data.axis[0].min)
+nk = int(kmax/delta_k)
 
-data_attrs_eplus = { 'UNITS': osh5def.OSUnits('m_e^2 c \omega_p/e'), 'NAME': 'e+', 'LONG_NAME': 'e2_+' }
-
-data_attrs_eminus = { 'UNITS': osh5def.OSUnits('m_e^2 c \omega_p/e'), 'NAME': 'e-', 'LONG_NAME': 'e2_-' }
+nz=nx_end-nx_begin+1
 
 
-run_attrs = {'XMAX' : np.array( [ time_step * (total_time-1),xaxis.max] ) , 
-            'XMIN' : np.array( [0, xaxis.min, 0] ) }
+# here we allocate the history array
+total_es = np.zeros((total_time,nk,nz))
+total_em =np.zeros((total_time,nk,nz))
+
+total_es = 0
+total_em = 0
+
+
+kaxis=osh5def.DataAxis(0, nk* delta_k, nk, attrs{'NAME':'k_{\perp}', 'LONG_NAME':'k_{\perp}', 'UNITS':osh5def.OSUnits('\omega_{0}/c')})
+data_attrs_hfhi_es_hist = { 'UNITS': osh5def.OSUnits('a.u.'), 'NAME': 'ES modes history', 'LONG_NAME': 'hfhi_es_hist' }
+
+data_attrs_hfhi_em_hist = { 'UNITS': osh5def.OSUnits('a.u.'), 'NAME': 'EM modes history', 'LONG_NAME': 'hfhi_em_hist' }
+
+
+run_attrs = {'XMAX' : np.array( [ time_step * (total_time-1),kmax,zmax] ) , 
+            'XMIN' : np.array( [0, 0, zmin] ) }
 
 
 
 i_count = 0
 file_number = 0
 for file_number in range(i_begin, i_end):
+    e1_filename = e1[file_number]
     e2_filename = e2[file_number]
-    e3_filename = e3[file_number]
-    b2_filename = b2[file_number]
-    b3_filename = b3[file_number]
+    
     if (i_count % 10 == 0 and rank == 0): 
-        print(e2_filename)
+        print(e1_filename)
     i_count = i_count+1
+    e1_data = osh5io.read_h5(e1_filename)
     e2_data = osh5io.read_h5(e2_filename)
-#    e3_data = osh5io.read_h5(e3_filename)
-#    b2_data = osh5io.read_h5(b2_filename)
-    b3_data = osh5io.read_h5(b3_filename)
-    e2_plus = (np.sum(e2_data,axis=0) + v_phase * np.sum(b3_data,axis=0))/(2.0*nx)
-    e2_minus = (np.sum(e2_data,axis=0) - v_phase * np.sum(b3_data,axis=0))/(2.0*nx)
-    print(e2_plus.shape)
-    e2_plus_output[file_number, 1:ny] = e2_plus[1:ny]
-    e2_minus_output[file_number, 1:ny] = e2_minus[1:ny]
+
+    el,et = field_decompose((e1_data,e2_data),outquants=(l1,t2))
+    el_inv = np.abs(np.fft.fft(el,axis=0))
+    et_inv = np.abs(np.fft.fft(et,axis=0))
+    
+    # temp = np.abs(np.fft.fft(e2_data,axis=0))
+    total_es[file_number,:,:]=temp[0:nk,nx_begin:nx_end]
+    total_em[file_number,:,:]=temp[0:nk,nx_begin:nx_end]
+
 #    temp = np.sum(s1_data, axis=0) / nx
 
 
@@ -153,32 +181,17 @@ comm.Reduce(e2_plus_output, total, op=MPI.SUM, root=0)
 if rank == 0:
     b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs_eplus,
         run_attrs=run_attrs, axes=[taxis,xaxis])
-    outFilename=outDir+'/'+'e2-plus.h5'
+    outFilename=outDir+'/'+'hfhi-es-data.h5'
     osh5io.write_h5(b,filename=outFilename)
 
 # now let's do the - component
-comm.Reduce(e2_minus_output, total, op=MPI.SUM, root=0)
+comm.Reduce(total2, total, op=MPI.SUM, root=0)
 if rank == 0:
-    b=osh5def.H5Data(total, timestamp='x', data_attrs=data_attrs_eminus,
+    b=osh5def.H5Data(total2, timestamp='x', data_attrs=data_attrs_eminus,
                      run_attrs=run_attrs, axes=[taxis,xaxis])
     outFilename=outDir+'/'+'e2-minus.h5'
     osh5io.write_h5(b,filename=outFilename)
 #    write_hdf(h5_output, outFilename)
 print('Before barrier'+repr(rank))
 comm.barrier()
-# comm.Reduce(income, total, op=MPI.SUM, root=0)
-# if rank == 0:
-#     h5_output.data = total
-#     newName = outFilename.rsplit('.', 1)[0] + '-x-n' + str(n_avg) + '.h5'
-#     write_hdf(h5_output, newName)
-# comm.barrier()
-# comm.Reduce(h5_output2.data, total2, op=MPI.SUM, root=0)
-# if rank == 0:
-#     h5_output2.data = total2
-#     write_hdf(h5_output2, outFilename)
-# comm.barrier()
-# comm.Reduce(income2, total2, op=MPI.SUM, root=0)
-# if rank == 0:
-#     h5_output2.data = total2
-#     newName = outFilename.rsplit('.', 1)[0] + '-y-n' + str(n_avg) + '.h5'
-#     write_hdf(h5_output2, newName)
+
