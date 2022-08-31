@@ -222,67 +222,36 @@ else:
         arcoeff2 = np.sqrt(1 - arcoeff1 * arcoeff1) * pm_am
         s = 2 * np.pi * ncc
         x_t = np.arange(0, s, s / m)
-
         sz_queue = int(np.ceil(s / (pm_bw * tu)))
-
         if sz_queue < m:
-
             warnings.warn('Phase bandwidth too large. Reduce pm_bw or increase nz')
-
         ph_xt = np.arange(0, s, s / sz_queue)
-
         ph_seq = np.zeros(sz_queue)
-
         ph_seq[0] = np.random.uniform(-np.pi, np.pi, 1)
-
         for szq in range(1, sz_queue):
-
             ph_seq[szq] = ar1(arcoeff1, arcoeff2, ph_seq[szq - 1], num=1)
-
         for zi in range(0, nz):
-
             ph_seq = np.roll(ph_seq, -1)
-
             ph_seq[sz_queue - 1] = ar1(arcoeff1, arcoeff2,
-
                                        ph_seq[sz_queue - 2], num=1)
-
             rph_t[:, nz - zi - 1] = np.interp(x_t, ph_xt, ph_seq) + rph
-
 # more factors for the diffraction integral
-
 for zi in range(0, nz):
-
     ph_shift[:, zi] = fac * Z[zi] * Xp * Xp / (F - Z[zi])
-
     ph_pro[:, zi] = ph_pro_st + np.square(X) * np.pi / (F - Z[zi])
-
     ft_co[:, zi] = 2 * np.pi * d * d / (lam * f) * Xp / (F - Z[zi])
 
-
-
 for tn in range(0, tnmax):
-
     efld.fill(0)
-
     # calculate the diffraction integral
-
     for zi in range(0, nz):
-
         for i in range(0, m):
-
             efld[:, zi] += np.sin(rph_t[i, zi] + ph_pro[:, zi] -
-
                                   ft_co[i, zi] * X + ph_shift[i, zi])
-
         # efld[:, zi] *= (amp[zi] * np.sinc(np.pi * X / m))
-
         efld[:, zi] *= amp[zi]
-
     # shift the phase array by one element (advancing in time), generate new phases
-
     rph_t = np.roll(rph_t, 1, axis=1)
-
     if phmod_type == 'AR':
         rph_buff = np.roll(rph_buff, 1, axis=1)
         rph_buff[:, 0] = ar1(arcoeff1, arcoeff2, rph_buff[:, 1])
