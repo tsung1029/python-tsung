@@ -98,259 +98,129 @@ if nx <= 1:
     X = 0.5 * lx * np.random.normal()
 
 plt.rc('axes', titlesize=24)
-
 plt.rc('axes', labelsize=24)
-
 plt.rc('xtick', labelsize=18)
-
 plt.rc('ytick', labelsize=18)
 
-
-
-
-
 def plot_2d_xz(fld):
-
     """ save the absolute values of fld as a png file
-
     """
-
     plt.figure(figsize=(16, 9))
-
     plt.imshow(abs(fld), extent=[-hz * z0 * 1e6, hz * z0 * 1e6,
-
                                  -0.5 * lx * x0 * 1e6, 0.5 * lx * x0 * 1e6],
-
                aspect='auto', vmin=0, vmax=3)
-
     plt.title('Envelope of E field ('+phmod_type +
-
               ', t='+"{0:.3f}".format(tn*tu*1.86e-4)+'ps)')
-
     plt.xlabel('$z (\mu m)$')
-
     plt.ylabel('$x (\mu m)$')
-
     plt.colorbar()
-
     plt.savefig('test'+"{0:0>4}".format(tn)+'.png')
-
     plt.close()
-
-
-
-
 
 def plot_1d_z(fld):
-
     """ save the absolute values of fld as a png file
-
     """
-
     plt.figure(figsize=(10.5, 4.5))
-
     plt.plot(Z * z0 * 1e6, abs(np.squeeze(fld)))
-
     plt.gca().set_ylim([0, 3])
-
     plt.title(phmod_type+', t=' + "{0:.3f}".format(tn * tu * 1.86e-4) + 'ps')
-
     plt.xlabel('$z (\mu m)$')
-
     plt.ylabel('Envelope')
-
     plt.savefig('test' + "{0:0>4}".format(tn) + '.png')
-
     plt.close()
-
-
-
-
-
+    
 func_dict = {
-
     True: plot_2d_xz,
-
     False: plot_1d_z,
-
 }
-
 save_plot = func_dict[nx > 1]
-
-
-
-
 
 # ISI (order 1 autoregressive)
 
 def ar1(b, sigma, pha, num=m):
-
     return b * pha + sigma * np.random.normal(size=num)
 
-
-
-
-
 # SMA
-
 def sma2d(pha):
-
     ret = np.cumsum(pha, axis=-1)
-
     ret[:, smn:] = ret[:, smn:] - ret[:, :-smn]
-
     return ret / smn
-
-
 
 # static random phase
 
 rph = np.random.uniform(-np.pi, np.pi, m)
-
-
-
 rph_t = np.zeros((m, nz))
-
 efld = np.zeros((np.size(X), nz))
-
 ph_pro = np.zeros((nx, nz))
-
 ft_co = np.zeros((m, nz))
 
 
 
 # caculate the constant factors of the diffraction integral
-
 fac = np.pi * d * d / (lam * f)
-
 ph_pro_st = np.mod(2 * np.pi * F / lam, 2 * np.pi)
-
 amp = F / (F - Z) / np.sqrt(m)
-
 phi = np.zeros((m, nz))
-
 phmod_type = phmod_type.upper()
-
 ph_shift = np.zeros((m, nz))
-
 tn_all = tnmax + nz
-
 omega = np.fft.fftshift(np.fft.fftfreq(tn_all, d=tu))
-
 if tu * lsr_bw > 0 and if_sma:
-
     smn = int(1.0 / (tu * lsr_bw))
-
 else:
-
     smn = 1
-
 rph_buff = np.zeros((m, nz + smn - 1))
-
-
-
 # # calculate the first frame
-
 # generate the phase array for the whole frame
-
 if phmod_type == 'FM':
-
     pm_bw = 0.5 * lsr_bw / pm_am / multi_fm
-
     if pm_bw > 0:
-
         s = 2 * np.pi * ncc
-
     else:
-
         s = 0
-
     ss = np.arange(1, multi_fm + 1) * s / multi_fm
-
     fm_am = pm_am / np.sqrt(multi_fm)
-
     for si in range(1, multi_fm + 1):
-
         for zi in range(0, nz):
-
             rph_t[:, nz - zi - 1] += (fm_am * np.sin(pm_bw * si * zi * tu -
-
                                                      ss[si - 1] * Xp))
-
     for zi in range(0, nz):
-
         rph_t[:, zi] += rph
-
 else:
-
     if (tu * lsr_bw) > (np.pi * 0.05):
-
         warnings.warn('Speckle pattern is changing too fast. '
-
                       'Decrease the value of (pm_bw*pm_am) or '
-
                       'increase the value of nz')
-
     if phmod_type == 'AR':
-
         pm_bw = 0.5 * lsr_bw / (pm_am * pm_am)
-
         arcoeff1 = np.exp(- tu * pm_bw)
-
         arcoeff2 = np.sqrt(1 - arcoeff1 * arcoeff1) * pm_am
-
         rph_buff[:, nz + smn - 2] = ar1(arcoeff1, arcoeff2, rph)
-
         for zi in range(1, nz + smn - 1):
-
             rph_buff[:, nz + smn - zi - 2] = ar1(arcoeff1, arcoeff2,
-
                                                  rph_buff[:, nz + smn - zi - 1])
-
         rph_t[:, nz - 1] = np.mean(rph_buff[:, nz-1:nz+smn-1], axis=-1)
-
         for zi in range(1, nz):
-
             rph_t[:, nz - zi - 1] = rph_t[:, nz - zi] + (rph_buff[:, nz - zi - 1] -
-
                                                          rph_buff[:, nz + smn - zi - 1]) / smn
-
     if phmod_type == 'GS':
-
         pm_bw = 0.5 * lsr_bw / pm_am
-
         spec_ph = np.zeros((m, tn_all), dtype=complex)
-
         if pm_bw > 0:
-
             # numpy fft is defined in terms of frequency not angular frequency
-
             psd = np.exp(
-
                 -np.log(2) * 0.5 * np.square(omega / pm_bw * 2 * np.pi))
-
             psd *= np.sqrt(2 * tn_all) / np.sqrt(np.mean(np.square(psd))) * pm_am
-
             for mi in range(0, m):
-
                 mth_ph = np.random.normal(scale=np.pi, size=tn_all)
-
                 spec_ph[mi, :] = psd * (np.cos(mth_ph) + 1j * np.sin(mth_ph))
-
         phase_all = np.real(np.fft.ifft(np.fft.ifftshift(spec_ph, axes=-1)))
-
         rph_t = phase_all[:, tn_all-nz:tn_all]
-
     if phmod_type == 'RPM':
-
         pm_bw = 0.5 * lsr_bw / (pm_am * pm_am)
-
         arcoeff1 = np.exp(- tu * pm_bw)
-
         arcoeff2 = np.sqrt(1 - arcoeff1 * arcoeff1) * pm_am
-
         s = 2 * np.pi * ncc
-
         x_t = np.arange(0, s, s / m)
 
         sz_queue = int(np.ceil(s / (pm_bw * tu)))
@@ -414,52 +284,25 @@ for tn in range(0, tnmax):
     rph_t = np.roll(rph_t, 1, axis=1)
 
     if phmod_type == 'AR':
-
         rph_buff = np.roll(rph_buff, 1, axis=1)
-
         rph_buff[:, 0] = ar1(arcoeff1, arcoeff2, rph_buff[:, 1])
-
         rph_t[:, 0] = rph_t[:, 1] + (rph_buff[:, 1] - rph_buff[:, 2]) / smn
-
     elif phmod_type == 'FM':
-
         rph_t[:, 0] = fm_am * np.sin(pm_bw * (nz + tn) * tu - ss[0] * Xp) + rph
-
         for si in range(2, multi_fm + 1):
-
             rph_t[:, 0] += fm_am * np.sin(pm_bw * si * (nz + tn) * tu -
-
                                           ss[si - 1] * Xp)
-
     elif phmod_type == 'GS':
-
         rph_t[:, 0] = phase_all[:, tn_all-nz-tn-1]
-
     else:  # 'RPM'
-
         ph_seq = np.roll(ph_seq, -1)
-
         ph_seq[sz_queue - 1] = ar1(arcoeff1, arcoeff2,
-
                                    ph_seq[sz_queue - 2], num=1)
-
         rph_t[:, 0] = np.interp(x_t, ph_xt, ph_seq) + rph
-
     save_plot(efld)
-
     # if tn % nz == 0:
-
     #     omega = np.fft.fftshift(np.fft.fftfreq(np.size(efld, axis=-1), d=tu))
-
     #     spec_am = np.sum(np.square(np.abs(np.fft.fftshift(np.fft.fft(
-
     #         efld, axis=-1)))), axis=0)
-
     #     plt.plot(omega, spec_am, label=phmod_type)
-
     #     plt.show()
-
-
-
-
-
