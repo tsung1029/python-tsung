@@ -1,105 +1,65 @@
 import numpy as np
-
 import matplotlib.pyplot as plt
-
 import warnings
 
 #
-
 # This script shows an 1D laser antenna propagating at locations near the plane
-
 # of best focus. The propagation is modeled by evaluating the diffraction
-
 # integral.
-
 #
-
 # normalized quantities:
-
 # # distance from focal plane
-
+#
 # Z  = z/z0 = z / (\lambda * f^2 / d^2)
-
 # F  = f/z0
-
 # # transverse coordinate on the focal plane
-
+#
 # X  = x/x0 = x / (\lambda * f / d)
-
+#
 # # transverse coordinate on aperture plane
-
+#
 # X' = x'/d
-
+#
 # T  = t/t0 = t / (\lambda * f^2 / d^2 / c)
-
+#
 # ==============================================================================
-
-
-
+#
 # input starts
-
+#
 # laser wave length, in micron
-
+#
 lam = 0.351
-
 # focal length, in meter
-
 f = 7.7
-
 # aperture of the focal lens, in meter
-
 d = f / 8.0
-
 # half length (unit is z0) of the simulation box in propagation direction
-
 hz = 22.0
-
 # total number of beamlets
-
 m = 25
-
 # transverse size (unit is x0) of the simulation box
-
 lx = 30
-
 # laser bandwidth due to phase modulation, defined as FWHM, in laser frequency
-
 # 117 --> 1THz
 # lsr_bw = 0.00117
 lsr_bw = 0.00
-
 # amplitude of phase modulation, should be no smaller than pi
-
 pm_am = np.pi
-
 # number of color cycles for the highest fm frequency
-
 ncc = 6.4
-
 # number of fm frequencies
-
 multi_fm = 3
-
 # number of grid points in propagation direction
-
 nz = 128 * 2
-
 # number of grid points in transverse direction
-
 nx = 25
-
 # number of time steps for the movie
-
 tnmax = 100
 
 # type of phase modulation, currently support:
-
 #   "AR": ISI with phase modeled with AR(1) process
-
 #   "GS": ISI with Gaussian PSD phase modulation
-
 #   "FM":  SSD with sinusoidal phase modulation
-
 #   "RPM": SSD with random phase modulation
 
 phmod_type = "fm"
@@ -115,19 +75,12 @@ if_sma = False
 
 
 # normalization factors
-
 lam *= 1e-6
-
 # normalize t0 to 1/\omega
-
 t0 = 2.0 * np.pi * (f * f) / (d * d)
-
 x0 = lam * f / d
-
 z0 = lam * (f * f) / (d * d)
-
 #
-
 # time between two positions in propagation direction. the unit is 1/\omega_0
 
 tu = 2.0 * hz * t0 / nz
