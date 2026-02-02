@@ -78,6 +78,43 @@ def plasma_param(density,te):
     return result
 
 
+def coulomb_log_quantum(ne_cm3, Te_eV, Z=1):
+    """
+    Quantum-corrected Coulomb logarithm for electron-ion collisions.
+    ne_cm3 : electron density in cm^-3
+    Te_eV : electron temperature in eV
+    Z     : ion charge state
+    """
+     # Physical constants (SI)
+    e = 1.602e-19       # Elementary charge [C]
+    epsilon_0 = 8.854e-12  # Vacuum permittivity [F/m]
+    k_B = 1.381e-23     # Boltzmann constant [J/K]
+    # Physical constants
+    kB = 1.380649e-23
+    hbar = 1.054571817e-34
+    me = 9.10938356e-31
+
+    ne_m3 = ne_cm3*1e6
+    Te_J = Te_eV * e
+
+    # Debye length (upper cutoff)
+    b_max = np.sqrt(epsilon_0 * Te_J / (ne_cm3 * e**2))
+    # lambda_D = np.sqrt(epsilon_0 * T_J / (n_e * e**2))
+
+
+    # Classical distance of closest approach
+    b_min_classical = Z * e**2 / (4 * np.pi * epsilon_0 * Te_J)
+
+    # Quantum de Broglie wavelength
+    b_min_quantum = hbar / np.sqrt(2 * me * Te_J)
+
+    print('Classic', b_min_classical,'QM', b_min_quantum)
+
+    # Lower cutoff includes quantum correction
+    b_min = max(b_min_classical, b_min_quantum)
+
+    return np.log(b_max / b_min)
+
 def coulomb_logarithm(n_e, T_e, Z=1):
     """
     Calculate the Coulomb logarithm lnΛ for a plasma.
@@ -113,7 +150,16 @@ def coulomb_logarithm(n_e, T_e, Z=1):
     return ln_Lambda
 
 
+def slowdown_ei(n_e, T_e, Z=1):
+    
+    ln_Lambda = coulomb_log_quantum(n_e, T_e, Z)
+    pl_param = plasma_param(n_e, T_e)
+    inv_pl_param = 1.0/(32*np.pi*pl_param)
+    plasma_freq = omegap(n_e)
+    print('plasma_parameter=',pl_param)
 
+    slowdown_ei = Z * ln_Lambda * plasma_freq * inv_pl_param
+    return slowdown_ei
 
 def coll_ei(n_e, T_e, Z=1):
     """
@@ -144,6 +190,12 @@ def coll_ei(n_e, T_e, Z=1):
     lambda_D = np.sqrt(epsilon_0 * T_J / (n_e * e**2))
     b_min = Z * e**2 / (4 * np.pi * epsilon_0 * T_J)
     ln_Lambda = np.log(lambda_D / b_min)
+
+    print("log_lambda=",ln_Lambda)
+
+    ln_Lambda = coulomb_log_quantum(n_e, T_e, Z)
+
+    print("log_lambda (2) =",ln_Lambda)
 
     # Electron-ion collision frequency
     prefactor = (4 * np.sqrt(2 * np.pi)) / 3
