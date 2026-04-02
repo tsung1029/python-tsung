@@ -14,7 +14,7 @@ import osh5def
 import osh5vis
 import osh5utils
 
-from h5_utilities import *
+#from h5_utilities import *
 import matplotlib.pyplot as plt
 import sys
 import getopt
@@ -39,24 +39,26 @@ i_end = total_time
 
 
 h5_filename=filelist[1]
+print(h5_filename)
 h5_data=osh5io.read_h5(h5_filename)
-array_dims=h5_data.shape
+array_dims=h5_data[0].shape
 nx=array_dims[0]
-time_step=h5_data.run_attrs['TIME'][0]
+time_step=h5_data[0].run_attrs['TIME'][0]
+list_length=len(h5_data)
 # h5_output=hdf_data()
 # h5_output.shape=[total_time,ny]
 print('nx='+repr(nx))
 print('time_step='+repr(time_step))
 print('total_time='+repr(total_time))
 #
-xaxis=h5_data.axes[0]
+xaxis=h5_data[0].axes[0]
 taxis=osh5def.DataAxis(0, time_step * (total_time -1), total_time,
     attrs={'NAME':'t', 'LONG_NAME':'time', 'UNITS':'1 / \omega_p'})
 
-data_attrs=h5_data.data_attrs
+data_attrs=h5_data[0].data_attrs
 
 
-h5_output= np.zeros((total_time,nx))
+h5_output= np.zeros((list_length,total_time,nx))
 # total    = np.zeros((total_time,nx))
 # h5_output.axes=[data_basic_axis(0,h5_data.axes[0].min,h5_data.axes[0].max,ny),
 # data_basic_axis(1,0.0,(time_step*total_time-1),total_time)]
@@ -73,13 +75,18 @@ for file_number in range(i_begin,i_end):
   if (file_number % 10 == 0 ):
       print(h5_filename)
   h5_data=osh5io.read_h5(h5_filename)
-  h5_output[file_number,1:nx]=h5_data.data[1:nx]
+  for i in range(list_length):
+      temp=((h5_data[i]))
+      h5_output[i,file_number,1:nx]=temp[1:nx]
   # file_number+=1
 
 
 
 print('before write')
-print(outfilename)
-b=osh5def.H5Data(h5_output, timestamp='x', data_attrs=data_attrs,run_attrs=run_attrs, axes=[taxis, xaxis])
-osh5io.write_h5(b,filename=outfilename)
+for i in range(list_length):
+    list_filename="%s-%02d.h5" %(outfilename,i)
+    print(list_filename)
+    b=osh5def.H5Data(h5_output[i,:,:], timestamp='x', data_attrs=data_attrs,run_attrs=run_attrs, axes=[taxis, xaxis])
+    osh5io.write_h5(b,filename=list_filename)
 print('after write')
+# print('Before barrier'+repr(rank))

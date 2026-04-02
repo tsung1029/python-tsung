@@ -14,7 +14,7 @@ import osh5def
 import osh5vis
 import osh5utils
 
-from h5_utilities import *
+# from h5_utilities import *
 import matplotlib.pyplot as plt
 import sys
 import getopt
