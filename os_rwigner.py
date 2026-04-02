@@ -29,7 +29,7 @@ def os_rwigner(real_array,xaxis):
 		attrs={'NAME':'k','LONG_NAME':'wave number', 'UNITS': '\omega_0/c'}
 
 	data_attrs = data_attrs = { 'UNITS': osh5def.OSUnits('[a.u.]'), 
-	'NAME': 'W_{\phi}', 'LONG_NAME': 'Wigner Transform' }
+		'NAME': 'W_{\phi}', 'LONG_NAME': 'Wigner Transform' }
 	run_attrs = {'XMAX' : np.array( [kmax, xaxis.max] ) , 
             'XMIN' : np.array( [0, xaxis.min ] ) }
 

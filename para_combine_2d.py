@@ -7,7 +7,7 @@
 
 
 import sys
-sys.path.append('/Users/franktsung/Documents/codes/python-tsung/')
+sys.path.append('/Users/franktsung/Documents/work/codes/python-tsung/')
 sys.path.append('/Volumes/Lacie-5TB/codes/pyVisOS/')
 
 import osh5io

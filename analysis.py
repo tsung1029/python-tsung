@@ -1,3 +1,10 @@
+#
+# analysis.py
+# by Frank S. Tsung
+#
+# most of these functions have been replaced by oshutils in pyVisOS.  
+# please download and use that instead.
+# 
 import numpy as np
 import str2keywords
 from h5_utilities import hdf_data

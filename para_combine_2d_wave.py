@@ -1,7 +1,10 @@
 
 #
-# Combine 2D data into 1 HDF5 file
-# the data is averaged in the x2 direction
+# Combine 2d data into 1 HDF file
+# this script is meant for quantities that 
+# are wave-like.  In this case we take advantage of Parseval's theorem
+# and sum the squares of the data.
+#
 #
 # FST, (c) 2019 Regents of The University of California
 #
@@ -16,17 +19,46 @@ import osh5def
 import osh5vis
 import osh5utils
 
-# from h5_utilities import *
+from h5_utilities import *
 import matplotlib.pyplot as plt
 import sys
 import getopt
 import glob
 import numpy as np
 
+# *****************************************************************************
+# *****************************************************************************
+# MPI related
+import mpi4py
+from mpi4py import MPI
+# MPI related
+# *****************************************************************************
+# *****************************************************************************
+
+
+def print_help():
+    print('mpirun -n X python para_combine_2d_wave.py [options] <InputDir> <OutputName>')
+    print('options:')
+    print('  -n: average over n grid points at entrance (32 by default)')
+    print('  -s: only process every S files')
+    print('  --avg: look into the -savg directory')
+    print('  --env: look into the -senv directory')
+
+# *****************************************************************************
+# *****************************************************************************
+# MPI initialization
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+# *****************************************************************************
+# *****************************************************************************
+# *****************************************************************************
+
+
 
 argc=len(sys.argv)
 if(argc < 3):
-    print('Usage: python combine_2d.py DIRNAME OUTNAME')
+    print('Usage: mpirun -np X python para_combine_2d_wave.py DIRNAME OUTNAME')
     sys.exit()
 
 dirname=sys.argv[1]
@@ -73,13 +105,10 @@ for file_number in range(i_begin,i_end):
   h5_filename=filelist[file_number]
   if (file_number % 10 == 0 ):
       print(h5_filename)
-  try:
-      h5_data_old = h5_data
-      h5_data=osh5io.read_h5(h5_filename)
-  except OSError:
-      h5_data = h5_data_old
-
-  temp=np.average((h5_data.data),axis=0)
+  h5_data=osh5io.read_h5(h5_filename)
+  h5_data = h5_data**2
+  temp=np.sum((h5_data.data),axis=0)  ! sum the squares of the data, store it below
+  # temp=np.sqrt(temp)
   h5_output[file_number,1:ny]=temp[1:ny]
   # file_number+=1
 
