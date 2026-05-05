@@ -44,8 +44,9 @@ def ch_hyb(tev,ionefour,lnmic,lambdamic):
     result=0.5*numpy.sqrt(0.75)*3*vth(tev)*vth(tev)/(ccgs*ccgs)*betawig(tev,ionefour,lambdamic,0.25)
     return result
 
+! as per conversation with Albert, the expression is changed to ^(1/2) as shown in Eq (90) of part III of Afeyan and Williams
 def cinh_hyb(ionefour,lnmic,lambdamic):
-    result=0.5*epsln(lnmic,lambdamic,0.25,1)/vowiggle(ionefour,lambdamic,0.25)**1.5
+    result=0.5*epsln(lnmic,lambdamic,0.25,1)/vowiggle(ionefour,lambdamic,0.25)**0.5
     return result
 
 def epsln(lnmic,lambdamic,nppmp,order):
