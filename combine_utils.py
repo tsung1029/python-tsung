@@ -26,11 +26,14 @@ def combine_2d(dirname, outfilename):
 
     # Read the first file to get dimensions and attributes
     h5_filename = filelist[0]
+    h5_filename_prime = filelist[1]
     h5_data = osh5io.read_h5(h5_filename)
+    h5_data_prime=osh5io.read_h5(h5_filename_prime)
     array_dims = h5_data.shape
+
     nx = array_dims[0]
     ny = array_dims[1]
-    time_step = h5_data.run_attrs['TIME'][0]
+    time_step = h5_data_prime.run_attrs['TIME'][0]-h5_data.run_attrs['TIME'][0]
 
     print('nx=' + repr(nx))
     print('time_step=' + repr(time_step))
