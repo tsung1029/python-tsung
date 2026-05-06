@@ -60,7 +60,7 @@ def combine_2d(dirname, outfilename):
         except OSError:
             h5_data = h5_data_old
 
-        temp = np.average(h5_data.data, axis=0)
+        temp = np.average(np.abs(h5_data.data), axis=0)
         h5_output[file_number, 1:ny] = temp[1:ny]
 
     print('before write')
