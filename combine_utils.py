@@ -118,3 +118,134 @@ def combine_1d(dirname, outfilename):
     b = osh5def.H5Data(h5_output, timestamp='x', data_attrs=data_attrs, run_attrs=run_attrs, axes=[taxis, xaxis])
     osh5io.write_h5(b, filename=outfilename)
     print('after write')
+
+def para_poynt_2d(
+    dirName,
+    outFilename,
+    n_avg=50,
+    skip=1,
+    use_avg=False,
+    use_env=False
+):
+    """
+    Compute averaged Poynting flux and save to HDF5.
+
+    Parameters
+    ----------
+    dirName : str
+        Input simulation directory.
+
+    outFilename : str
+        Output HDF5 filename.
+
+    n_avg : int, optional
+        Number of grid points for averaging (default = 50).
+
+    skip : int, optional
+        Process every `skip` files (default = 1).
+
+    use_avg : bool, optional
+        Use '-savg' directories.
+
+    use_env : bool, optional
+        Use '-senv' directories.
+    """
+
+    dir_ext = ''
+
+    if use_avg:
+        dir_ext = '-savg'
+
+    if use_env:
+        dir_ext = '-senv'
+
+    e2 = sorted(glob.glob(dirName + '/FLD/e2' + dir_ext + '/*.h5'))
+    e3 = sorted(glob.glob(dirName + '/FLD/e3' + dir_ext + '/*.h5'))
+    b2 = sorted(glob.glob(dirName + '/FLD/b2' + dir_ext + '/*.h5'))
+    b3 = sorted(glob.glob(dirName + '/FLD/b3' + dir_ext + '/*.h5'))
+
+    total_time = len(e2)
+
+    i_begin = 0
+    i_end = total_time - 1
+
+    avg_array = np.ones(n_avg) / n_avg
+
+    #
+    # Read second file to get dimensions and timestep
+    #
+    h5_filename = e2[1]
+    h5_data = osh5io.read_h5(h5_filename)
+
+    array_dims = h5_data.shape
+    nx = array_dims[0]
+    ny = array_dims[1]
+
+    time_step = h5_data.run_attrs['TIME'][0]
+
+    print('nx=' + repr(nx))
+    print('ny=' + repr(ny))
+    print('time_step=' + repr(time_step))
+    print('total_time=' + repr(total_time))
+
+    h5_output = np.zeros((total_time, ny))
+
+    xaxis = h5_data.axes[1]
+
+    taxis = osh5def.DataAxis(
+        0,
+        time_step * (total_time - 1),
+        total_time,
+        attrs={
+            'NAME': 't',
+            'LONG_NAME': 'time',
+            'UNITS': '1 / \\omega_p'
+        }
+    )
+
+    data_attrs = {
+        'UNITS': osh5def.OSUnits('m_e \\omega_p^3'),
+        'NAME': 's1',
+        'LONG_NAME': 'S_1'
+    }
+
+    print(repr(xaxis.min))
+    print(repr(xaxis.max))
+
+    run_attrs = {
+        'XMAX': np.array([time_step * (total_time - 1), xaxis.max]),
+        'XMIN': np.array([0, xaxis.min])
+    }
+
+    #
+    # Main processing loop
+    #
+    for file_number in range(i_begin, i_end, skip):
+
+        e2_data = osh5io.read_h5(e2[file_number])
+        e3_data = osh5io.read_h5(e3[file_number])
+        b2_data = osh5io.read_h5(b2[file_number])
+        b3_data = osh5io.read_h5(b3[file_number])
+
+        s1_data = e2_data * b3_data - e3_data * b2_data
+
+        temp = np.sum(s1_data, axis=0) / nx
+
+        h5_output[file_number, 1:ny] = np.abs(
+            np.convolve(temp[1:ny], avg_array, mode='same')
+        )
+
+    #
+    # Write output
+    #
+    b = osh5def.H5Data(
+        h5_output,
+        timestamp='x',
+        data_attrs=data_attrs,
+        run_attrs=run_attrs,
+        axes=[taxis, xaxis]
+    )
+
+    osh5io.write_h5(b, filename=outFilename)
+
+    return b
